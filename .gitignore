@@ -1,0 +1,6 @@
+*.sln
+*.filters
+/.vs
+/Debug
+/Release
+/x64
