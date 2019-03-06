@@ -147,13 +147,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AutomataMod.cpp" />
+    <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="InventoryManager.cpp" />
+    <ClCompile Include="AutomataMod.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput8.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AutomataMod.hpp" />
     <ClInclude Include="InventoryManager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
