@@ -70,16 +70,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>dinput8</TargetName>
+    <TargetName>xinput1_3</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>dinput8</TargetName>
+    <TargetName>xinput1_3</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>dinput8</TargetName>
+    <TargetName>xinput1_3</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <TargetName>dinput8</TargetName>
+    <TargetName>xinput1_3</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>AUTOMATA_RELEASE_TARGET;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>dinput8.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -104,7 +104,7 @@
       <PreprocessorDefinitions>AUTOMATA_RELEASE_TARGET;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>dinput8.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -124,7 +124,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>dinput8.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -142,7 +142,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>dinput8.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -152,7 +152,7 @@
     <ClCompile Include="AutomataMod.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="dinput8.def" />
+    <None Include="xinput.def" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AutomataMod.hpp" />

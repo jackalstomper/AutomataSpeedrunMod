@@ -1,4 +1,3 @@
-// Proxy DLL for DirectInput 8 to provide an entry point for our code to modify automata with
 #include <windows.h>
 #include <psapi.h>
 #include <thread>
@@ -6,32 +5,40 @@
 
 namespace {
 
+struct XINPUT_BATTERY_INFORMATION;
+struct XINPUT_CAPABILITIES;
+struct XINPUT_STATE;
+struct XINPUT_VIBRATION;
+struct XINPUT_KEYSTROKE;
+
 // Function pointer types for the DLL functions we have to proxy
-using DirectInput8CreateProc = HRESULT(WINAPI *)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
-using DllGetClassObjectProc = HRESULT(WINAPI *)(REFCLSID, REFIID, LPVOID *);
-using DllCanUnloadNowProc = HRESULT(WINAPI *)();
-using DllRegisterServerProc = HRESULT(WINAPI *)();
-using DllUnregisterServerProc = HRESULT(WINAPI *)();
+using XInputEnableProc = void(WINAPI *)(BOOL);
+using XInputGetBatteryInformationProc = DWORD(WINAPI *)(DWORD, BYTE, XINPUT_BATTERY_INFORMATION*);
+using XInputGetCapabilitiesProc = DWORD(WINAPI *)(DWORD, DWORD, XINPUT_CAPABILITIES*);
+using XInputGetKeystrokeProc = DWORD(WINAPI *)(DWORD, DWORD, XINPUT_KEYSTROKE*);
+using XInputGetStateProc = DWORD(WINAPI *)(DWORD, XINPUT_STATE*);
+using XInputSetStateProc = DWORD(WINAPI *)(DWORD, XINPUT_VIBRATION*);
 
-DllGetClassObjectProc dllGetClassObjectFunc = nullptr;
-DllCanUnloadNowProc dllCanUnloadNowFunc = nullptr;
-DirectInput8CreateProc directInput8CreateFunc = nullptr;
-DllRegisterServerProc dllRegisterServerFunc = nullptr;
-DllUnregisterServerProc dllUnregisterServerFunc = nullptr;
+XInputEnableProc _XInputEnableProc = nullptr;
+XInputGetBatteryInformationProc _XInputGetBatteryInformationProc = nullptr;
+XInputGetCapabilitiesProc _XInputGetCapabilitiesProc = nullptr;
+XInputGetKeystrokeProc _XInputGetKeystrokeProc = nullptr;
+XInputGetStateProc _XInputGetStateProc = nullptr;
+XInputSetStateProc _XInputSetStateProc = nullptr;
 
-HMODULE dInput8 = nullptr;
+HMODULE hProxyHandle = nullptr;
 HMODULE processRamStart = nullptr;
 std::thread* checkerThread = nullptr;
 
 template<typename T>
 T getProc(const char* procName)
 {
-    return reinterpret_cast<T>(GetProcAddress(dInput8, procName));
+    return reinterpret_cast<T>(GetProcAddress(hProxyHandle, procName));
 }
 
 void init()
 {
-    if (dInput8)
+    if (hProxyHandle)
         return;
 
     // Get the starting memory address for automata
@@ -44,32 +51,30 @@ void init()
 
     processRamStart = hMod;
 
-    // Before attempting to load the real DirectInput 8 see if user has FAR installed and use FAR's proxy instead
-    dInput8 = LoadLibrary("dinput8_far");
-    if (!dInput8) {
-        // User doesn't have FAR, fetch the official windows DirectInput 8 library
-        // Get windows directory for this system so we can load the real library
-        TCHAR windir[1024];
-        UINT dirLen = GetSystemDirectory(windir, 1024);
-        if (dirLen == 0)
-            return;
+    // User doesn't have FAR, fetch the official windows DirectInput 8 library
+    // Get windows directory for this system so we can load the real library
+    TCHAR windir[1024];
+    UINT dirLen = GetSystemDirectory(windir, 1024);
+    if (dirLen == 0)
+        return;
 
-        // Append the dll directory to windows dir
-        if (dirLen + 13 > 1024)
-            return; // welp. filepath is too long for our memory buffer. Something dynamic should be done about this...later
+    // Append the dll directory to windows dir
+    if (dirLen + 15 > 1024)
+        return; // welp. filepath is too long for our memory buffer. Something dynamic should be done about this...later
 
-        memcpy(windir + dirLen, "\\dinput8.dll\0", 13);
-        dInput8 = LoadLibraryEx(windir, NULL, 0);
-        if (!dInput8)
-            return;
-    }
+    memcpy(windir + dirLen, "\\xinput1_3.dll\0", 15);
+    hProxyHandle = LoadLibraryEx(windir, NULL, 0);
+    if (!hProxyHandle)
+        return;
 
     // Get addresses to the real functions so we can forward our calls to them
-    directInput8CreateFunc = getProc<DirectInput8CreateProc>("DirectInput8Create");
-    dllGetClassObjectFunc = getProc<DllGetClassObjectProc>("DllGetClassObject");
-    dllCanUnloadNowFunc = getProc<DllCanUnloadNowProc>("DllCanUnloadNow");
-    dllRegisterServerFunc = getProc<DllRegisterServerProc>("DllRegisterServer");
-    dllUnregisterServerFunc = getProc<DllUnregisterServerProc>("DllUnregisterServer");
+    _XInputEnableProc = getProc<XInputEnableProc>("XInputEnable");
+    _XInputGetBatteryInformationProc = getProc<XInputGetBatteryInformationProc>("XInputGetBatteryInformation");
+    _XInputGetCapabilitiesProc = getProc<XInputGetCapabilitiesProc>("XInputGetCapabilities");
+    _XInputGetKeystrokeProc = getProc<XInputGetKeystrokeProc>("XInputGetKeystroke");
+    _XInputGetStateProc = getProc<XInputGetStateProc>("XInputGetState");
+    _XInputSetStateProc = getProc<XInputSetStateProc>("XInputSetState");
+
     checkerThread = new std::thread(AutomataMod::checkStuff, reinterpret_cast<uint8_t*>(processRamStart));
 }
 
@@ -79,9 +84,9 @@ extern "C" {
     BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID)
     {
         if (reason == DLL_PROCESS_DETACH) {
-            if (dInput8) {
-                FreeLibrary(dInput8);
-                dInput8 = nullptr;
+            if (hProxyHandle) {
+                FreeLibrary(hProxyHandle);
+                hProxyHandle = nullptr;
             }
 
             if (checkerThread) {
@@ -93,53 +98,57 @@ extern "C" {
         return TRUE;
     }
 
-    HRESULT WINAPI DirectInput8Create(
-        HINSTANCE hinst,
-        DWORD dwVersion,
-        REFIID riidltf,
-        LPVOID *ppvOut,
-        LPUNKNOWN punkOuter)
+    void WINAPI XInputEnable(BOOL b)
     {
         init();
-        if (!directInput8CreateFunc)
-            return E_NOINTERFACE;
+        if (!_XInputEnableProc)
+            return;
 
-        return directInput8CreateFunc(hinst, dwVersion, riidltf, ppvOut, punkOuter);
+        _XInputEnableProc(b);
     }
 
-    HRESULT WINAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppv)
+    DWORD WINAPI XInputGetBatteryInformation(DWORD d, BYTE b, XINPUT_BATTERY_INFORMATION* x)
     {
         init();
-        if (!dllGetClassObjectFunc)
-            return E_FAIL;
+        if (!_XInputGetBatteryInformationProc)
+            return ERROR;
 
-        return dllGetClassObjectFunc(rclsid, riid, ppv);
+        return _XInputGetBatteryInformationProc(d, b, x);
     }
 
-    HRESULT WINAPI DllCanUnloadNow()
+    DWORD WINAPI XInputGetCapabilities(DWORD d1, DWORD d2, XINPUT_CAPABILITIES* x)
     {
         init();
-        if (!dllCanUnloadNowFunc)
-            return E_FAIL;
+        if (!_XInputGetCapabilitiesProc)
+            return ERROR;
 
-        return dllCanUnloadNowFunc();
+        return _XInputGetCapabilitiesProc(d1, d2, x);
     }
 
-    HRESULT WINAPI DllRegisterServer()
+    DWORD WINAPI XInputGetKeystroke(DWORD d1, DWORD d2, XINPUT_KEYSTROKE* x)
     {
         init();
-        if (!dllRegisterServerFunc)
-            return E_FAIL;
+        if (!_XInputGetKeystrokeProc)
+            return ERROR;
 
-        return dllRegisterServerFunc();
+        return _XInputGetKeystrokeProc(d1, d2, x);
     }
 
-    HRESULT WINAPI DllUnregisterServer()
+    DWORD WINAPI XInputGetState(DWORD d1, XINPUT_STATE* x)
     {
         init();
-        if (!dllUnregisterServerFunc)
-            return E_FAIL;
+        if (!_XInputGetStateProc)
+            return ERROR;
 
-        return dllUnregisterServerFunc();
+        return _XInputGetStateProc(d1, x);
+    }
+
+    DWORD WINAPI XInputSetState(DWORD d1, XINPUT_VIBRATION* x)
+    {
+        init();
+        if (!_XInputSetStateProc)
+            return ERROR;
+
+        return _XInputSetStateProc(d1, x);
     }
 }
