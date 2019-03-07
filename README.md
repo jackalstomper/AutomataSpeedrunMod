@@ -1,0 +1,18 @@
+## Automata Speedrun Mod
+Mod that aims to make the NieR: Automata speedrun more tolerable.
+
+As of now all it does is give VC3 mats after adam pit.
+
+### Installation
+* Download a version from [releases](/releases/latest)
+* Unzip `xinput1_3.zip`
+* Place the DLL in the same directory as `NieRAutomata.exe`
+
+Done! The mod should add VC3 mats after you beat Adam 1 bossfight
+
+Note that right now the mod only adds the materials **if you started from a new game!**
+
+### How does it work?
+The mod uses a *proxy DLL* of the official Windows DLL `xinput1_3.dll` which gives the mod access to Automata's process memory to modify as it pleases.
+
+The mod still forwards the actual xinput methods to the real windows DLL. The mod just abuses the fact automata loads this DLL to get it's code running first.
