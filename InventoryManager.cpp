@@ -21,12 +21,12 @@ InventoryManager::ItemSlot InventoryManager::getItemSlot(int slotNumber)
     return slot;
 }
 
-int InventoryManager::getEmptyItemSlot()
+int InventoryManager::getItemSlotIndexById(uint32_t itemId)
 {
-    uint32_t itemId;
+    uint32_t iterId;
     for (int i = 0; i < MAX_SLOT_COUNT; ++i) {
-        itemId = *(_itemTableRamStart + (i * SLOT_SIZE));
-        if (itemId == EMPTY_SLOT_ID)
+        iterId = *(_itemTableRamStart + (i * SLOT_SIZE));
+        if (iterId == itemId)
             return i;
     }
 
@@ -37,60 +37,41 @@ void InventoryManager::setVc3Inventory()
 {
     ItemSlot dentedPlateSlot;
     ItemSlot severedCableSlot;
-    uint32_t itemId;
-    bool foundSeveredCable = false;
-    bool foundDentedPlate = false;
-
-    for (int i = 0; i < MAX_SLOT_COUNT; ++i) {
-        itemId = *(_itemTableRamStart + (i * SLOT_SIZE));
-
-        if (itemId == DENTED_PLATE_ID) {
-            dentedPlateSlot = getItemSlot(i);
-            foundDentedPlate = true;
-        } else if (itemId == SEVERED_CABLE_ID) {
-            severedCableSlot = getItemSlot(i);
-            foundSeveredCable = true;
-        }
-
-        if (foundSeveredCable && foundDentedPlate)
-            break;
-    }
+    int dentedPlateSlotIndex = getItemSlotIndexById(DENTED_PLATE_ID);
+    int severedCableSlotIndex = getItemSlotIndexById(SEVERED_CABLE_ID);
 
     // In order to get VC3 after adam pit we need:
     // 4 dented plates
     // 3 severed cables
-
-    if (foundDentedPlate) {
-        // already have dented plate, only add nessesary amount to continue run
-        if (*dentedPlateSlot.quantity < 4)
-            *dentedPlateSlot.quantity = 4;
-    } else {
-        // need to add invetnory for dented plate
-        int emptySlot = getEmptyItemSlot();
-        if (emptySlot == -1)
+    if (dentedPlateSlotIndex == -1) {
+        dentedPlateSlotIndex = getItemSlotIndexById(EMPTY_SLOT_ID);
+        if (dentedPlateSlotIndex == -1)
             return; // We dont have any inventory room left and we didn't find any dented plates. Something's gone wrong.
 
-        dentedPlateSlot = getItemSlot(emptySlot);
+        dentedPlateSlot = getItemSlot(dentedPlateSlotIndex);
         *dentedPlateSlot.itemId = DENTED_PLATE_ID;
         *dentedPlateSlot.unknown = 0xFFFFFFFF;
-        *dentedPlateSlot.quantity = 4;
+    } else {
+        dentedPlateSlot = getItemSlot(dentedPlateSlotIndex);
     }
 
-    if (foundSeveredCable) {
-        // already have severed cable, only add nessesary amount to continue run
-        if (*severedCableSlot.quantity < 3)
-            *severedCableSlot.quantity = 3;
-    } else {
-        // need to add inventory for severed cable
-        int emptySlot = getEmptyItemSlot();
-        if (emptySlot == -1)
-            return; // We dont have any inventory room left and we didn't find any severed cable. Something's gone wrong.
+    if (severedCableSlotIndex == -1) {
+        severedCableSlotIndex = getItemSlotIndexById(EMPTY_SLOT_ID);
+        if (severedCableSlotIndex == -1)
+            return; // We dont have any inventory room left and we didn't find any severed cables. Something's gone wrong.
 
-        severedCableSlot = getItemSlot(emptySlot);
+        severedCableSlot = getItemSlot(severedCableSlotIndex);
         *severedCableSlot.itemId = SEVERED_CABLE_ID;
         *severedCableSlot.unknown = 0xFFFFFFFF;
-        *severedCableSlot.quantity = 3;
+    } else {
+        severedCableSlot = getItemSlot(severedCableSlotIndex);
     }
+
+    if (*dentedPlateSlot.quantity < 4)
+        *dentedPlateSlot.quantity = 4;
+
+    if (*severedCableSlot.quantity < 3)
+        *severedCableSlot.quantity = 3;
 }
 
 } // namespace AutomataMod

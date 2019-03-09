@@ -51,7 +51,6 @@ void init()
 
     processRamStart = hMod;
 
-    // User doesn't have FAR, fetch the official windows DirectInput 8 library
     // Get windows directory for this system so we can load the real library
     TCHAR windir[1024];
     UINT dirLen = GetSystemDirectory(windir, 1024);
