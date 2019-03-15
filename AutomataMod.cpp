@@ -2,7 +2,6 @@
 #include <chrono>
 #include <thread>
 #include "InventoryManager.hpp"
-#include "ChipManager.hpp"
 
 namespace {
 
@@ -31,12 +30,9 @@ void checkStuff(uint8_t* processRamStart)
     uint32_t* playerNameSet = getOffsetPointer<uint32_t*>(processRamStart, PLAYER_SET_NAME_ADDR);
     uint32_t* isWorldLoaded = getOffsetPointer<uint32_t*>(processRamStart, IS_WORLD_LOADED_ADDR);
     uint32_t* itemTableRamStart = getOffsetPointer<uint32_t*>(processRamStart, ITEM_TABLE_START_ADDR);
-    uint32_t* chipTableRamStart = getOffsetPointer<uint32_t*>(processRamStart, CHIP_TABLE_START_ADDR);
     int32_t* money = getOffsetPointer<int32_t*>(processRamStart, MONEY_ADDR);
 
     bool inventoryModded = false;
-    bool chipsAdded = false;
-    AutomataMod::ChipManager chipManager(chipTableRamStart, money);
     AutomataMod::InventoryManager inventoryManager(itemTableRamStart);
 
     while (true) {
@@ -45,17 +41,9 @@ void checkStuff(uint8_t* processRamStart)
             inventoryModded = true;
         }
 
-        if (!chipsAdded && *isWorldLoaded == 1 && *playerNameSet == 1 && strncmp(currentPhase, "200_70_AB_Ruined_City_end", 25) == 0) {
-            chipManager.addEndingEChips();
-            chipsAdded = true;
-        }
-
         if (*isWorldLoaded == 0 && *playerNameSet == 0) {
             if (inventoryModded)
                 inventoryModded = false;
-
-            if (chipsAdded)
-                chipsAdded = false;
         }
 
         std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(250)); // check stuff 4 times a second
