@@ -30,18 +30,18 @@ void InventoryManager::setVc3Inventory()
     // In order to get VC3 after adam pit we need:
     // 4 dented plates
     // 3 severed cables
-    if (dentedPlateSlot == nullptr) {
+    if (!dentedPlateSlot) {
         dentedPlateSlot = getItemSlotById(EMPTY_SLOT_ID);
-        if (dentedPlateSlot == nullptr)
+        if (!dentedPlateSlot)
             return; // We dont have any inventory room left and we didn't find any dented plates. Something's gone wrong.
 
         dentedPlateSlot->itemId = DENTED_PLATE_ID;
         dentedPlateSlot->unknown = 0xFFFFFFFF;
     }
 
-    if (severedCableSlot == nullptr) {
+    if (!severedCableSlot) {
         severedCableSlot = getItemSlotById(EMPTY_SLOT_ID);
-        if (severedCableSlot == nullptr)
+        if (!severedCableSlot)
             return; // We dont have any inventory room left and we didn't find any severed cables. Something's gone wrong.
 
         severedCableSlot->itemId = SEVERED_CABLE_ID;
