@@ -13,27 +13,18 @@ const uint64_t ITEM_TABLE_START_ADDR = 0x197C4C4;
 const uint64_t CHIP_TABLE_START_ADDR = 0x197E410;
 const uint64_t MONEY_ADDR = 0x197C4C0;
 
-// Our offsets are in bytes, so we need to compute the pointer using a byte sized type before converting into the type we desire
-template<typename T>
-T getOffsetPointer(uint8_t* processRamStart, uint64_t address)
-{
-    return reinterpret_cast<T>(processRamStart + address);
-}
-
 } // namespace
 
 namespace AutomataMod {
 
-void checkStuff(uint8_t* processRamStart)
+void checkStuff(uint64_t processRamStart)
 {
-    char* currentPhase = getOffsetPointer<char*>(processRamStart, CURRENT_PHASE_ADDR);
-    uint32_t* playerNameSet = getOffsetPointer<uint32_t*>(processRamStart, PLAYER_SET_NAME_ADDR);
-    uint32_t* isWorldLoaded = getOffsetPointer<uint32_t*>(processRamStart, IS_WORLD_LOADED_ADDR);
-    uint32_t* itemTableRamStart = getOffsetPointer<uint32_t*>(processRamStart, ITEM_TABLE_START_ADDR);
-    int32_t* money = getOffsetPointer<int32_t*>(processRamStart, MONEY_ADDR);
+    char* currentPhase = reinterpret_cast<char*>(processRamStart + CURRENT_PHASE_ADDR);
+    uint32_t* playerNameSet = reinterpret_cast<uint32_t*>(processRamStart + PLAYER_SET_NAME_ADDR);
+    uint32_t* isWorldLoaded = reinterpret_cast<uint32_t*>(processRamStart + IS_WORLD_LOADED_ADDR);
 
     bool inventoryModded = false;
-    AutomataMod::InventoryManager inventoryManager(itemTableRamStart);
+    AutomataMod::InventoryManager inventoryManager(processRamStart + ITEM_TABLE_START_ADDR);
 
     while (true) {
         if (!inventoryModded && *isWorldLoaded == 1 && *playerNameSet == 1 && strncmp(currentPhase, "58_AB_BossArea_Fall", 19) == 0) {

@@ -74,7 +74,7 @@ void init()
     _XInputGetStateProc = getProc<XInputGetStateProc>("XInputGetState");
     _XInputSetStateProc = getProc<XInputSetStateProc>("XInputSetState");
 
-    checkerThread = new std::thread(AutomataMod::checkStuff, reinterpret_cast<uint8_t*>(processRamStart));
+    checkerThread = new std::thread(AutomataMod::checkStuff, reinterpret_cast<uint64_t>(processRamStart));
 }
 
 } // namespace

@@ -3,6 +3,6 @@
 
 namespace AutomataMod {
 
-void checkStuff(uint8_t* processRamStart);
+void checkStuff(uint64_t processRamStart);
 
 }
