@@ -2,7 +2,6 @@
 
 namespace AutomataMod {
 
-const int InventoryManager::MAX_SLOT_COUNT = 512;
 const int InventoryManager::MAX_SLOT_COUNT = 255;
 const int InventoryManager::SLOT_SIZE = 3;
 const uint32_t InventoryManager::SEVERED_CABLE_ID = 550;
