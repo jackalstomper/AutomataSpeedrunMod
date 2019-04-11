@@ -52,11 +52,8 @@ void ChipManager::addEndingEChips()
             break;
     }
 
-    *_money -= 30000;
-    if (*_money < 0)
-        *_money = 0;
-
     if (!raupSlot && (raupSlot = getChipSlotById(EMPTY_SLOT_ID)) != nullptr) {
+        *_money -= 10000;
         reset(raupSlot);
         raupSlot->unknown0 = 33;
         raupSlot->id = RAUP_CHIP_ID;
@@ -66,6 +63,7 @@ void ChipManager::addEndingEChips()
     }
 
     if (!waupSlot1 && (waupSlot1 = getChipSlotById(EMPTY_SLOT_ID)) != nullptr) {
+        *_money -= 10000;
         reset(waupSlot1);
         waupSlot1->unknown0 = 6;
         waupSlot1->id = WAUP_CHIP_ID;
@@ -74,6 +72,7 @@ void ChipManager::addEndingEChips()
     }
 
     if (!waupSlot2 && (waupSlot2 = getChipSlotById(EMPTY_SLOT_ID)) != nullptr) {
+        *_money -= 10000;
         reset(waupSlot2);
         waupSlot2->unknown0 = 6;
         waupSlot2->id = WAUP_CHIP_ID;

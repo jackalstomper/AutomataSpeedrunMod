@@ -41,7 +41,10 @@ public:
     static const uint32_t RAUP_CHIP_ID;
 
     ChipManager(uint64_t chipTableRamStart, int32_t* money);
+
+    // Returns a chip with the given chip ID present in inventory, or nullptr if none found
     ChipSlot* getChipSlotById(uint32_t chipId);
+
     void addEndingEChips();
 };
 
