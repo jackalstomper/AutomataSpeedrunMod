@@ -1,17 +1,21 @@
-#include <cstdint>
+﻿#include <cstdint>
 #include <chrono>
 #include <thread>
+#include <cstring>
 #include "InventoryManager.hpp"
 
 namespace {
+
+// The text we will append to player names when starting a new game
+const char16_t* vc3Name = u"vc3v1.2";
+const size_t vc3NameLength = std::char_traits<char16_t>::length(vc3Name);
 
 // Addresses are offsets in bytes relevant to processRamStart
 const uint64_t CURRENT_PHASE_ADDR = 0x1101D58;
 const uint64_t PLAYER_SET_NAME_ADDR = 0x147B4BC;
 const uint64_t IS_WORLD_LOADED_ADDR = 0x110ADC0;
 const uint64_t ITEM_TABLE_START_ADDR = 0x197C4C4;
-const uint64_t CHIP_TABLE_START_ADDR = 0x197E410;
-const uint64_t MONEY_ADDR = 0x197C4C0;
+const uint64_t PLAYER_NAME_ADDR = 0x194BF88;
 
 } // namespace
 
@@ -24,6 +28,7 @@ void checkStuff(uint64_t processRamStart)
     uint32_t* isWorldLoaded = reinterpret_cast<uint32_t*>(processRamStart + IS_WORLD_LOADED_ADDR);
 
     bool inventoryModded = false;
+    bool nameModded = false;
     AutomataMod::InventoryManager inventoryManager(processRamStart + ITEM_TABLE_START_ADDR);
 
     while (true) {
@@ -32,9 +37,25 @@ void checkStuff(uint64_t processRamStart)
             inventoryModded = true;
         }
 
+        if (!nameModded && *isWorldLoaded == 1 && *playerNameSet == 1) {
+            char16_t* name = reinterpret_cast<char16_t*>(processRamStart + PLAYER_NAME_ADDR);
+            size_t nameLength = std::char_traits<char16_t>::length(name);
+            if (nameLength + vc3NameLength > 16) {
+                size_t offset = 16 - vc3NameLength;
+                memcpy(name + offset, vc3Name, vc3NameLength * sizeof(char16_t));
+            } else {
+                memcpy(name + nameLength, vc3Name, (vc3NameLength * sizeof(char16_t)) + 1); // +1 for terminating null
+            }
+
+            nameModded = true;
+        }
+
         if (*isWorldLoaded == 0 && *playerNameSet == 0) {
             if (inventoryModded)
                 inventoryModded = false;
+
+            if (nameModded)
+                nameModded = false;
         }
 
         std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(250)); // check stuff 4 times a second
