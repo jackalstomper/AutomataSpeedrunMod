@@ -93,4 +93,8 @@ void log(LogLevel level, const char* message)
 #endif
 }
 
+void showErrorBox(const char* message) {
+    MessageBox(NULL, message, "AutomataMod has encountered an Error", MB_OK | MB_ICONSTOP);
+}
+
 } // namespace AutomataMod

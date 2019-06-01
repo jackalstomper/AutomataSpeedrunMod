@@ -29,8 +29,8 @@ XInputGetStateProc _XInputGetStateProc = nullptr;
 XInputSetStateProc _XInputSetStateProc = nullptr;
 
 HMODULE hProxyHandle = nullptr;
-HMODULE processRamStart = nullptr;
 uint64_t processRamStartAddr = 0;
+bool initFailed = false; // This gets flipped to true if an unrecoverable error happened during init(). In which case we stop trying to do anything
 
 template<typename T>
 T getProc(const char* procName)
@@ -46,7 +46,7 @@ void tick()
 
 void init()
 {
-    if (hProxyHandle)
+    if (initFailed || hProxyHandle)
         return;
 
     using LogLevel = AutomataMod::LogLevel;
@@ -58,27 +58,29 @@ void init()
     DWORD cbNeeded;
 
     if (!EnumProcessModulesEx(currentProcess, &hMod, sizeof(hMod), &cbNeeded, LIST_MODULES_64BIT)) {
-        AutomataMod::log(LogLevel::LOG_ERROR, "Failed to find process ram start for automata");
+        const char* msg = "Failed to find process ram start for automata. VC3 Mod won't work";
+        AutomataMod::log(LogLevel::LOG_ERROR, msg);
+        AutomataMod::showErrorBox(msg);
+        initFailed = true;
         return;
     }
-
-    processRamStart = hMod;
-    processRamStartAddr = reinterpret_cast<uint64_t>(processRamStart);
-    AutomataMod::log(LogLevel::LOG_INFO, "Found process ram start: " + std::to_string(processRamStartAddr));
 
     // Get windows directory for this system so we can load the real library
     AutomataMod::log(LogLevel::LOG_INFO, "Trying to find system directory to load real xinput DLL");
     std::vector<WCHAR> buff(1024);
     UINT dirLen = GetSystemDirectoryW(buff.data(), 1024);
     if (dirLen == 0) {
-        AutomataMod::log(LogLevel::LOG_ERROR, "Failed to find system directory to load real DLL");
+        const char* msg = "Failed to find system directory to load real DLL. VC3 Mod won't work";
+        AutomataMod::log(LogLevel::LOG_ERROR, msg);
+        AutomataMod::showErrorBox(msg);
+        initFailed = true;
         return;
     }
 
     if (dirLen + 15 > 1024) {
         // windows directory is too long for our buffer, use a dynamic buffer
         // when GetSystemDirectory fails dirLen will be size of buffer needed including null terminating character
-        buff = std::vector<WCHAR>(dirLen + 15);
+        buff = std::vector<WCHAR>(dirLen);
         dirLen = GetSystemDirectoryW(buff.data(), dirLen);
     }
 
@@ -89,9 +91,25 @@ void init()
     // Append the dll directory to windows dir
     hProxyHandle = LoadLibraryExW(libPath.c_str(), NULL, 0);
     if (!hProxyHandle) {
-        AutomataMod::log(LogLevel::LOG_ERROR, "Failed to load real xinput DLL");
+    #ifdef AUTOMATA_LOG
+        DWORD error = GetLastError();
+        LPWSTR messageBuff = NULL;
+        FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error, 0, (LPWSTR)&messageBuff, 0, NULL);
+        if (messageBuff) {
+            std::wstring message(messageBuff);
+            LocalFree(messageBuff);
+            AutomataMod::log(LogLevel::LOG_ERROR, L"Failed to load real xinput DLL: " + message);
+        } else {
+            AutomataMod::log(LogLevel::LOG_ERROR, "Failed to load real xinput DLL");
+        }
+    #endif
+        AutomataMod::showErrorBox("Failed to load real xinput DLL. VC3 mod won't work");
+        initFailed = true;
         return;
     }
+
+    processRamStartAddr = reinterpret_cast<uint64_t>(hMod);
+    AutomataMod::log(LogLevel::LOG_INFO, "Process ram start: " + std::to_string(processRamStartAddr));
 
     // Get addresses to the real functions so we can forward our calls to them
     AutomataMod::log(LogLevel::LOG_INFO, "Assigning procs");
