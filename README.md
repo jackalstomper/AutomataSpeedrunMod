@@ -25,3 +25,25 @@ There should also be a logfile that the mod generates in your users AppData dire
 ```
 C:\Users\<username>\AppData\Roaming\.automataMod\automataMod.log
 ```
+
+This directory can be accessed quickly by opening the `Run` window (Winkey + R) and typing in `%appdata%`
+
+Example of a log with the mod functioning as normal
+```plain
+2019-06-13 15:34:33 [INFO] Initializing AutomataMod
+2019-06-13 15:34:33 [INFO] Trying to find system directory to load real xinput DLL
+2019-06-13 15:34:33 [INFO] Found directory: <dll directory>
+2019-06-13 15:34:33 [INFO] Process ram start: <number>
+2019-06-13 15:34:33 [INFO] Assigning procs
+2019-06-13 15:36:31 [INFO] Detected we need to change savefile name. Changing.
+2019-06-13 15:36:47 [INFO] Detected we are in 58_AB_BossArea_Fall. Giving VC3 inventory
+2019-06-13 15:36:47 [INFO] No dented plates found. Adding...
+2019-06-13 15:36:47 [INFO] No severed cables found. Adding...
+2019-06-13 15:36:47 [INFO] Current Dented Plates: 0
+2019-06-13 15:36:47 [INFO] Current Severed Cables: 0
+2019-06-13 15:36:47 [INFO] Setting dented plates to 4
+2019-06-13 15:36:47 [INFO] Setting severed cables to 3
+2019-06-13 15:36:47 [INFO] Current Dented Plates: 4
+2019-06-13 15:36:47 [INFO] Current Severed Cables: 3
+2019-06-13 15:36:47 [INFO] Done adding inventory.
+```
