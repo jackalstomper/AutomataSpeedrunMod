@@ -28,6 +28,8 @@ C:\Users\<username>\AppData\Roaming\.automataMod\automataMod.log
 
 This directory can be accessed quickly by opening the `Run` window (Winkey + R) and typing in `%appdata%`
 
+Note that this log is reset every time you boot the game! If you want to share this log to help with troubleshooting make sure to save it before rebooting your game again.
+
 Example of a log with the mod functioning as normal
 ```plain
 2019-06-13 15:34:33 [INFO] Initializing AutomataMod
