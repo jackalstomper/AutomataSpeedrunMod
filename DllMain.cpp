@@ -50,7 +50,7 @@ void init()
         return;
 
     using LogLevel = AutomataMod::LogLevel;
-    AutomataMod::log(LogLevel::LOG_INFO, "Initializing AutomataMod");
+    AutomataMod::log(LogLevel::LOG_INFO, "Initializing AutomataMod v1.2");
 
     // Get the starting memory address for automata
     HANDLE currentProcess = GetCurrentProcess();
