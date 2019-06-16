@@ -2,6 +2,7 @@
 #include <psapi.h>
 #include <tchar.h>
 #include <vector>
+#include <thread>
 #include "AutomataMod.hpp"
 #include "Log.hpp"
 
@@ -31,17 +32,12 @@ XInputSetStateProc _XInputSetStateProc = nullptr;
 HMODULE hProxyHandle = nullptr;
 uint64_t processRamStartAddr = 0;
 bool initFailed = false; // This gets flipped to true if an unrecoverable error happened during init(). In which case we stop trying to do anything
+std::thread* checkerThread = nullptr;
 
 template<typename T>
 T getProc(const char* procName)
 {
     return reinterpret_cast<T>(GetProcAddress(hProxyHandle, procName));
-}
-
-void tick()
-{
-    if (processRamStartAddr != 0)
-        AutomataMod::checkStuff(processRamStartAddr);
 }
 
 void init()
@@ -50,7 +46,7 @@ void init()
         return;
 
     using LogLevel = AutomataMod::LogLevel;
-    AutomataMod::log(LogLevel::LOG_INFO, "Initializing AutomataMod v1.2");
+    AutomataMod::log(LogLevel::LOG_INFO, "Initializing AutomataMod v1.3");
 
     // Get the starting memory address for automata
     HANDLE currentProcess = GetCurrentProcess();
@@ -119,6 +115,10 @@ void init()
     _XInputGetKeystrokeProc = getProc<XInputGetKeystrokeProc>("XInputGetKeystroke");
     _XInputGetStateProc = getProc<XInputGetStateProc>("XInputGetState");
     _XInputSetStateProc = getProc<XInputSetStateProc>("XInputSetState");
+
+    checkerThread = new std::thread([]() {
+        AutomataMod::checkStuff(processRamStartAddr);
+    });
 }
 
 } // namespace
@@ -176,9 +176,6 @@ extern "C" {
     DWORD WINAPI XInputGetState(DWORD d1, XINPUT_STATE* x)
     {
         init();
-        if (d1 == 0)
-            tick();
-
         if (!_XInputGetStateProc)
             return ERROR;
 
