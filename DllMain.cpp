@@ -1,10 +1,11 @@
 #include <windows.h>
-#include <psapi.h>
-#include <tchar.h>
 #include <vector>
 #include <thread>
+#include <d3d11.h>
 #include "AutomataMod.hpp"
 #include "Log.hpp"
+#include "iat.hpp"
+#include "DxWrappers.hpp"
 
 namespace {
 
@@ -34,6 +35,29 @@ uint64_t processRamStartAddr = 0;
 bool initFailed = false; // This gets flipped to true if an unrecoverable error happened during init(). In which case we stop trying to do anything
 std::thread* checkerThread = nullptr;
 
+IAT::IATHook* d3dCreateDeviceHook = nullptr;
+IAT::IATHook* dxgiCreateFactoryHook = nullptr;
+
+HRESULT CreateDXGIFactoryHooked(REFIID riid, void** ppFactory) {
+    IDXGIFactory* factory;
+    HRESULT facResult = CreateDXGIFactory(riid, (void**)&factory);
+    if (SUCCEEDED(facResult))
+        (*(IDXGIFactory**)ppFactory) = new DxWrappers::DXGIFactoryWrapper(factory);
+
+    return facResult;
+}
+
+// need to intercept the D3D11 create device call to add D2D support
+HRESULT D3D11CreateDeviceHooked(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType,
+    HMODULE Software, UINT Flags, const D3D_FEATURE_LEVEL* pFeatureLevels,
+    UINT FeatureLevels, UINT SDKVersion, ID3D11Device** ppDevice,
+    D3D_FEATURE_LEVEL* pFeatureLevel, ID3D11DeviceContext** ppImmediateContext) {
+    HRESULT result = D3D11CreateDevice(pAdapter, DriverType, Software, Flags | D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+        pFeatureLevels, FeatureLevels, SDKVersion, ppDevice, pFeatureLevel, ppImmediateContext);
+
+    return result;
+}
+
 template<typename T>
 T getProc(const char* procName)
 {
@@ -49,17 +73,7 @@ void init()
     AutomataMod::log(LogLevel::LOG_INFO, "Initializing AutomataMod v1.3");
 
     // Get the starting memory address for automata
-    HANDLE currentProcess = GetCurrentProcess();
-    HMODULE hMod;
-    DWORD cbNeeded;
-
-    if (!EnumProcessModulesEx(currentProcess, &hMod, sizeof(hMod), &cbNeeded, LIST_MODULES_64BIT)) {
-        const char* msg = "Failed to find process ram start for automata. VC3 Mod won't work";
-        AutomataMod::log(LogLevel::LOG_ERROR, msg);
-        AutomataMod::showErrorBox(msg);
-        initFailed = true;
-        return;
-    }
+    HMODULE hMod = GetModuleHandle(nullptr);
 
     // Get windows directory for this system so we can load the real library
     AutomataMod::log(LogLevel::LOG_INFO, "Trying to find system directory to load real xinput DLL");
@@ -126,7 +140,20 @@ void init()
 extern "C" {
     BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID)
     {
-        if (reason == DLL_PROCESS_DETACH) {
+        if (reason == DLL_PROCESS_ATTACH) {
+            d3dCreateDeviceHook = new IAT::IATHook("d3d11.dll", "D3D11CreateDevice", (LPCVOID)D3D11CreateDeviceHooked);
+            dxgiCreateFactoryHook = new IAT::IATHook("dxgi.dll", "CreateDXGIFactory", (LPCVOID)CreateDXGIFactoryHooked);
+        } else if (reason == DLL_PROCESS_DETACH) {
+            if (d3dCreateDeviceHook) {
+                delete d3dCreateDeviceHook;
+                d3dCreateDeviceHook = nullptr;
+            }
+
+            if (dxgiCreateFactoryHook) {
+                delete dxgiCreateFactoryHook;
+                dxgiCreateFactoryHook = nullptr;
+            }
+
             if (hProxyHandle) {
                 FreeLibrary(hProxyHandle);
                 hProxyHandle = nullptr;
