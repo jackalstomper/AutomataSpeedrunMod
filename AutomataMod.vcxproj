@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="ChipManager.cpp" />
     <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="DxWrappers.cpp" />
     <ClCompile Include="iat.cpp" />
     <ClCompile Include="InventoryManager.cpp" />
     <ClCompile Include="AutomataMod.cpp" />

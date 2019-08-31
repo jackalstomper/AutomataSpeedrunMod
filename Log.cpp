@@ -11,6 +11,11 @@
 #include <locale>
 #include <codecvt>
 
+#ifndef AUTOMATA_RELEASE_TARGET
+#include "DxWrappers.hpp"
+extern DxWrappers::DXGIFactoryWrapper* g_wrapper;
+#endif
+
 namespace {
 
 LPCWSTR logFolderName = L".automataMod";
@@ -90,7 +95,12 @@ void log(LogLevel level, const char* message)
     }
 
     logFile << message << std::endl;
-#endif
+
+#ifndef AUTOMATA_RELEASE_TARGET
+    if (g_wrapper) // Write onscreen log
+        g_wrapper->writeLog(message);
+#endif // AUTOMATA_RELEASE_TARGET
+#endif // AUTOMATA_LOG
 }
 
 void showErrorBox(const char* message) {
