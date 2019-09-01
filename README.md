@@ -49,3 +49,7 @@ Example of a log with the mod functioning as normal
 2019-06-13 15:36:47 [INFO] Current Severed Cables: 3
 2019-06-13 15:36:47 [INFO] Done adding inventory.
 ```
+
+### Contributors
+* icefire - Author
+* Martino - Researching and providing an example implementation of the watermark Direct2D code
