@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <thread>
 #include <d3d11.h>
+#include <ctime>
 #include "AutomataMod.hpp"
 #include "Log.hpp"
 #include "iat.hpp"
@@ -15,10 +16,13 @@ IAT::IATHook* d3dCreateDeviceHook = nullptr;
 IAT::IATHook* dxgiCreateFactoryHook = nullptr;
 
 // Need to intercept the DXGI factory to return our wrapper of it
-HRESULT CreateDXGIFactoryHooked(REFIID riid, void** ppFactory) {
+HRESULT WINAPI CreateDXGIFactoryHooked(REFIID riid, void** ppFactory) {
     IDXGIFactory* factory;
     HRESULT facResult = CreateDXGIFactory(riid, (void**)&factory);
     if (SUCCEEDED(facResult)) {
+        if (g_wrapper)
+            delete g_wrapper;
+
         g_wrapper = new DxWrappers::DXGIFactoryWrapper(factory);
         (*(IDXGIFactory**)ppFactory) = g_wrapper;
     }
@@ -27,17 +31,17 @@ HRESULT CreateDXGIFactoryHooked(REFIID riid, void** ppFactory) {
 }
 
 // need to intercept the D3D11 create device call to add D2D support
-HRESULT D3D11CreateDeviceHooked(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType,
-    HMODULE Software, UINT Flags, const D3D_FEATURE_LEVEL* pFeatureLevels,
-    UINT FeatureLevels, UINT SDKVersion, ID3D11Device** ppDevice,
-    D3D_FEATURE_LEVEL* pFeatureLevel, ID3D11DeviceContext** ppImmediateContext) {
-    HRESULT result = D3D11CreateDevice(pAdapter, DriverType, Software, Flags | D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-        pFeatureLevels, FeatureLevels, SDKVersion, ppDevice, pFeatureLevel, ppImmediateContext);
-
-    return result;
+HRESULT WINAPI D3D11CreateDeviceHooked(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType,
+        HMODULE Software, UINT Flags, const D3D_FEATURE_LEVEL* pFeatureLevels,
+        UINT FeatureLevels, UINT SDKVersion, ID3D11Device** ppDevice,
+        D3D_FEATURE_LEVEL* pFeatureLevel, ID3D11DeviceContext** ppImmediateContext) {
+    return D3D11CreateDevice(pAdapter, DriverType, Software, Flags | D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+            pFeatureLevels, FeatureLevels, SDKVersion, ppDevice, pFeatureLevel, ppImmediateContext);
 }
 
+
 void init() {
+    std::srand(std::time(nullptr));
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Initializing AutomataMod v1.4");
     uint64_t processRamStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Process ram start: " + std::to_string(processRamStartAddr));

@@ -2,29 +2,40 @@
 
 #include <d2d1_1.h>
 #include <dwrite.h>
-#include "Log.hpp"
-
-#ifndef AUTOMATA_RELEASE_TARGET
-#include <vector>
-#endif
+#include <chrono>
 
 namespace DxWrappers {
 
 class DXGISwapChainWrapper : public IDXGISwapChain {
     static const WCHAR* VC3_NAME;
+    static const UINT VC3_LEN;
+    static const D2D1::ColorF WATERMARK_COLOR;
+    static const D2D1::ColorF SHADOW_COLOR;
+    static const D2D1_BITMAP_PROPERTIES1 BITMAP_PROPERTIES;
 
     IDXGISwapChain* m_target;
     ID2D1DeviceContext* m_deviceContext;
     IDWriteTextFormat* m_textFormat;
     ID2D1SolidColorBrush* m_brush;
-#ifndef AUTOMATA_RELEASE_TARGET
-    std::vector<std::string> m_logLines;
-#endif
+    ID2D1SolidColorBrush* m_shadowBrush;
+    ID2D1Bitmap1* m_bitmap;
+
+    bool m_dvdMode; // true when watermark should bounce around
+    D2D1_VECTOR_2F m_location;
+    D2D1_VECTOR_2F m_velocity;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame;
+    D2D1_SIZE_F m_screenSize;
 
     void renderWatermark();
 
+    // Roates velocity in a random direction
+    void rotateVelocity();
+
+    // Resets location to the default position
+    void resetLocation();
+
 public:
-    DXGISwapChainWrapper(IDXGISwapChain* target, ID2D1DeviceContext* deviceContext, IDWriteTextFormat* textFormat, ID2D1SolidColorBrush* brush);
+    DXGISwapChainWrapper(IDXGISwapChain* target, ID2D1DeviceContext* deviceContext);
     virtual ~DXGISwapChainWrapper();
     virtual HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
     virtual ULONG __stdcall AddRef() override;
@@ -45,24 +56,15 @@ public:
     virtual HRESULT __stdcall GetFrameStatistics(DXGI_FRAME_STATISTICS* pStats) override;
     virtual HRESULT __stdcall GetLastPresentCount(UINT* pLastPresentCount) override;
 
-#ifndef AUTOMATA_RELEASE_TARGET
-    // Write the given line on screen
-    void writeLog(const std::string& line);
-#endif
-
+    void toggleDvdMode(bool enabled);
 };
 
 class DXGIFactoryWrapper : public IDXGIFactory {
-    static const D2D1_BITMAP_PROPERTIES1 BITMAP_PROPERTIES;
 
     IDXGIFactory* m_target;
     ID2D1Factory1* m_D2DFactory;
-    IDWriteFactory* m_DWFactory;
     ID2D1Device* m_D2DDevice;
     ID2D1DeviceContext* m_D2DDeviceContext;
-    ID2D1SolidColorBrush* m_Brush;
-    ID2D1Bitmap1* m_Target;
-    IDWriteTextFormat* m_DWTextFormat;
     DXGISwapChainWrapper* m_currentSwapChain;
 
 public:
@@ -81,11 +83,7 @@ public:
     virtual HRESULT __stdcall GetPrivateData(REFGUID Name, UINT* pDataSize, void* pData) override;
     virtual HRESULT __stdcall GetParent(REFIID riid, void** ppParent) override;
 
-#ifndef AUTOMATA_RELEASE_TARGET
-    // Write the given line on screen
-    void writeLog(const std::string& line);
-#endif
-
+    void toggleDvdMode(bool enabled);
 };
 
 } // namespace DxWrappers
