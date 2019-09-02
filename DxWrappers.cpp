@@ -1,7 +1,7 @@
 #include "DxWrappers.hpp"
 #include "Log.hpp"
-#include <ctime>
 #include <cmath>
+#include <random>
 
 namespace DxWrappers {
 
@@ -20,8 +20,12 @@ const D2D1_BITMAP_PROPERTIES1 DXGISwapChainWrapper::BITMAP_PROPERTIES = {
 };
 
 void DXGISwapChainWrapper::rotateVelocity() {
-    const FLOAT pi = 3.141592f;
-    const FLOAT angle = -pi + ((FLOAT)rand()) / ((FLOAT)(RAND_MAX / (pi - -pi)));
+    static std::random_device rd;
+    static const FLOAT pi = 3.141592f;
+    static std::mt19937 eng(rd());
+    static std::uniform_real_distribution<float> dist(-pi, pi);
+
+    const FLOAT angle = dist(eng);
     m_velocity.x = m_velocity.x * std::cos(angle) - m_velocity.y * std::sin(angle);
     m_velocity.y = m_velocity.x * std::sin(angle) - m_velocity.y * std::cos(angle);
 }

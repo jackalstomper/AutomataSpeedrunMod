@@ -1,7 +1,6 @@
 #include <windows.h>
 #include <thread>
 #include <d3d11.h>
-#include <ctime>
 #include "AutomataMod.hpp"
 #include "Log.hpp"
 #include "iat.hpp"
@@ -41,7 +40,6 @@ HRESULT WINAPI D3D11CreateDeviceHooked(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE D
 
 
 void init() {
-    std::srand(std::time(nullptr));
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Initializing AutomataMod v1.4");
     uint64_t processRamStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Process ram start: " + std::to_string(processRamStartAddr));
