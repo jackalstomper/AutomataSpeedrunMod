@@ -70,11 +70,11 @@ void DXGISwapChainWrapper::renderWatermark() {
 
     // Draw shadow behind our text
     m_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, 2));
-    m_deviceContext->DrawTextA(VC3_NAME, VC3_LEN, m_textFormat, rect, m_shadowBrush);
+    m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_shadowBrush);
     m_deviceContext->SetTransform(root);
 
     // Draw main text
-    m_deviceContext->DrawTextA(VC3_NAME, VC3_LEN, m_textFormat, rect, m_brush);
+    m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_brush);
     m_deviceContext->EndDraw();
     m_lastFrame = now;
 }
