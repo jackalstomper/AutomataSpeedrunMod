@@ -169,7 +169,7 @@ HRESULT __stdcall DXGISwapChainWrapper::GetDevice(REFIID riid, void** ppDevice) 
 
 HRESULT __stdcall DXGISwapChainWrapper::Present(UINT SyncInterval, UINT Flags) {
     renderWatermark();
-    return m_target->Present(SyncInterval, Flags);;
+    return m_target->Present(SyncInterval, Flags);
 }
 
 HRESULT __stdcall DXGISwapChainWrapper::GetBuffer(UINT Buffer, REFIID riid, void** ppSurface) {
