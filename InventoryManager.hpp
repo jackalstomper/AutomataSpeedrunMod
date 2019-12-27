@@ -18,6 +18,10 @@ public:
     static const uint32_t DENTED_PLATE_ID;
     static const uint32_t EMPTY_SLOT_ID;
 
+    static const uint32_t FISH_AROWANA_ID;
+    static const uint32_t FISH_BROKEN_FIREARM_ID;
+    static const uint32_t FISH_MACKEREL_ID;
+
 private:
     ItemSlot* const _firstSlot; // The memory address that the item table starts at
     static const int MAX_SLOT_COUNT; // the total number of inventory slots the game supports
@@ -28,7 +32,12 @@ public:
     // Returns the slot for the given index, or nullptr if not found
     ItemSlot* getItemSlotById(uint32_t itemId);
 
+    // Returns the slot for the given index range (inclusive), or nullptr if not found
+    ItemSlot* getItemSlotByIdRange(uint32_t itemIdStart, uint32_t itemIdEnd);
+
     void setVc3Inventory();
+
+    bool overrideFishedItemWithMackerel();
 };
 
 } // namespace AutomataMod

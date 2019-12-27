@@ -40,10 +40,15 @@ void checkStuff(uint64_t processRamStart)
     AutomataMod::log(LogLevel::LOG_INFO, "Checker thread started. Waiting for change conditions");
 
     while (true) {
-        if (!inventoryModded && *isWorldLoaded == 1 && *playerNameSet == 1 && strncmp(currentPhase, "58_AB_BossArea_Fall", 19) == 0) {
-            AutomataMod::log(LogLevel::LOG_INFO, "Detected we are in 58_AB_BossArea_Fall. Giving VC3 inventory");
-            inventoryManager.setVc3Inventory();
-            inventoryModded = true;
+        if (!inventoryModded && *isWorldLoaded == 1 && *playerNameSet == 1) {
+            if (strncmp(currentPhase, "58_AB_BossArea_Fall", 19) == 0) {
+                AutomataMod::log(LogLevel::LOG_INFO, "Detected we are in 58_AB_BossArea_Fall. Giving VC3 inventory");
+                inventoryManager.setVc3Inventory();
+                inventoryModded = true;
+            }
+            else if (strncmp(currentPhase, "00_60_A_RobotM_Pro_Tutorial", 27) == 0) {
+                inventoryModded = inventoryManager.overrideFishedItemWithMackerel();
+            }
         }
 
         if (*isWorldLoaded == 0 && *playerNameSet == 0) {

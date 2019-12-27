@@ -12,6 +12,10 @@ const uint32_t InventoryManager::SEVERED_CABLE_ID = 550;
 const uint32_t InventoryManager::DENTED_PLATE_ID = 610;
 const uint32_t InventoryManager::EMPTY_SLOT_ID = 0xFFFFFFFF;
 
+const uint32_t InventoryManager::FISH_AROWANA_ID = 8001;
+const uint32_t InventoryManager::FISH_MACKEREL_ID = 8016;
+const uint32_t InventoryManager::FISH_BROKEN_FIREARM_ID = 8041;
+
 InventoryManager::InventoryManager(uint64_t itemTableRamStart) : _firstSlot(reinterpret_cast<ItemSlot*>(itemTableRamStart))
 {}
 
@@ -19,6 +23,16 @@ InventoryManager::ItemSlot* InventoryManager::getItemSlotById(uint32_t itemId)
 {
     for (ItemSlot* i = _firstSlot; i != _firstSlot + MAX_SLOT_COUNT; ++i) {
         if (i->itemId == itemId)
+            return i;
+    }
+
+    return nullptr;
+}
+
+InventoryManager::ItemSlot* InventoryManager::getItemSlotByIdRange(uint32_t itemIdStart, uint32_t itemIdEnd)
+{
+    for (ItemSlot* i = _firstSlot; i != _firstSlot + MAX_SLOT_COUNT; ++i) {
+        if (i->itemId >= itemIdStart && i->itemId <= itemIdEnd)
             return i;
     }
 
@@ -75,6 +89,20 @@ void InventoryManager::setVc3Inventory()
     AutomataMod::log(LogLevel::LOG_INFO, "Current Dented Plates: " + std::to_string(dentedPlateSlot->quantity));
     AutomataMod::log(LogLevel::LOG_INFO, "Current Severed Cables: " + std::to_string(severedCableSlot->quantity));
     AutomataMod::log(LogLevel::LOG_INFO, "Done adding inventory.");
+}
+
+bool InventoryManager::overrideFishedItemWithMackerel()
+{
+    ItemSlot* firstFish = getItemSlotByIdRange(FISH_AROWANA_ID, FISH_BROKEN_FIREARM_ID);
+
+    if (firstFish) {
+        AutomataMod::log(LogLevel::LOG_INFO, "Overriding fish with id " + std::to_string(firstFish->itemId));
+        firstFish->itemId = FISH_MACKEREL_ID;
+        AutomataMod::log(LogLevel::LOG_INFO, "Done overwriting fish in inventory.");
+
+        return true;
+    }
+    return false;
 }
 
 } // namespace AutomataMod
