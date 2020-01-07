@@ -53,3 +53,4 @@ Example of a log with the mod functioning as normal
 ### Contributors
 * icefire - Author
 * Martino - Researching and providing an example implementation of the watermark Direct2D code
+* [remote-mine](https://github.com/remote-mine) - Adding fishing replacement logic for Mackerel runs
