@@ -158,6 +158,7 @@
     <ClCompile Include="InventoryManager.cpp" />
     <ClCompile Include="AutomataMod.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="xinput.def" />
@@ -169,6 +170,7 @@
     <ClInclude Include="iat.hpp" />
     <ClInclude Include="InventoryManager.hpp" />
     <ClInclude Include="Log.hpp" />
+    <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

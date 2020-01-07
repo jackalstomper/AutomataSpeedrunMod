@@ -29,14 +29,15 @@ InventoryManager::ItemSlot* InventoryManager::getItemSlotById(uint32_t itemId)
     return nullptr;
 }
 
-InventoryManager::ItemSlot* InventoryManager::getItemSlotByIdRange(uint32_t itemIdStart, uint32_t itemIdEnd)
+std::vector<InventoryManager::ItemSlot*> InventoryManager::getAllItemsByRange(uint32_t itemIdStart, uint32_t itemIdEnd)
 {
+    std::vector<ItemSlot*> items;
     for (ItemSlot* i = _firstSlot; i != _firstSlot + MAX_SLOT_COUNT; ++i) {
         if (i->itemId >= itemIdStart && i->itemId <= itemIdEnd)
-            return i;
+            items.push_back(i);
     }
 
-    return nullptr;
+    return items;
 }
 
 void InventoryManager::setVc3Inventory()
@@ -91,17 +92,25 @@ void InventoryManager::setVc3Inventory()
     AutomataMod::log(LogLevel::LOG_INFO, "Done adding inventory.");
 }
 
-bool InventoryManager::overrideFishedItemWithMackerel()
+bool InventoryManager::adjustFishInventory(bool shouldDeleteFish)
 {
-    ItemSlot* firstFish = getItemSlotByIdRange(FISH_AROWANA_ID, FISH_BROKEN_FIREARM_ID);
+    std::vector<ItemSlot*> fishies = getAllItemsByRange(FISH_AROWANA_ID, FISH_BROKEN_FIREARM_ID);
 
-    if (firstFish) {
-        AutomataMod::log(LogLevel::LOG_INFO, "Overriding fish with id " + std::to_string(firstFish->itemId));
-        firstFish->itemId = FISH_MACKEREL_ID;
-        AutomataMod::log(LogLevel::LOG_INFO, "Done overwriting fish in inventory.");
-
-        return true;
+    if (fishies.size() > 0) {
+        if (shouldDeleteFish) {
+            for (ItemSlot* fish : fishies) {
+                fish->itemId = EMPTY_SLOT_ID;
+                fish->unknown = 0xFFFFFFFF;
+                fish->quantity = 0;
+            }
+        } else {
+            AutomataMod::log(LogLevel::LOG_INFO, "Overriding fish with id " + std::to_string(fishies[0]->itemId));
+            fishies[0]->itemId = FISH_MACKEREL_ID;
+            AutomataMod::log(LogLevel::LOG_INFO, "Done overwriting fish in inventory.");
+            return true;
+        }
     }
+
     return false;
 }
 

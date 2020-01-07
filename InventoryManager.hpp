@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 
 namespace AutomataMod {
 
@@ -32,12 +33,13 @@ public:
     // Returns the slot for the given index, or nullptr if not found
     ItemSlot* getItemSlotById(uint32_t itemId);
 
-    // Returns the slot for the given index range (inclusive), or nullptr if not found
-    ItemSlot* getItemSlotByIdRange(uint32_t itemIdStart, uint32_t itemIdEnd);
+    // Returns all items that match the given item ID range (inclusive)
+    std::vector<ItemSlot*> getAllItemsByRange(uint32_t itemIdStart, uint32_t itemIdEnd);
 
     void setVc3Inventory();
 
-    bool overrideFishedItemWithMackerel();
+    // shouldDeleteFish - true if any caught fish should be deleted from the inventory immediately
+    bool adjustFishInventory(bool shouldDeleteFish);
 };
 
 } // namespace AutomataMod
