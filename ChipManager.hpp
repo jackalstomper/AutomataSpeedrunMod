@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "PointerIterator.hpp"
 
 namespace AutomataMod {
 
@@ -25,27 +26,30 @@ public:
         uint32_t unknown2; // Always 0xFFFFFFFF (except OS chip, which is 0)
         uint32_t unknown3; // Always 0xFFFFFFFF (except OS chip, which is 0)
         uint32_t unknown4; // Always 0
+
+        ChipSlot& operator=(const ChipSlot& other);
     };
+
+    using Iterator = PointerIterator<ChipSlot>;
 
 private:
     ChipSlot* const _firstChip; // The memory address that the chip table starts at
-    int32_t* _money;
 
     static const int MAX_SLOT_COUNT; // total amount of chips that can be stored on a player profile
-
-    // Empties the chip slot
-    void reset(ChipSlot* chip);
 public:
     static const uint32_t EMPTY_SLOT_ID; // chip ID indicating an empty chip slot
     static const uint32_t WAUP_CHIP_ID;
     static const uint32_t RAUP_CHIP_ID;
+    static const uint32_t TAUNT2_CHIP_ID;
 
-    ChipManager(uint64_t chipTableRamStart, int32_t* money);
+    ChipManager(uint64_t chipTableRamStart);
 
     // Returns a chip with the given chip ID present in inventory, or nullptr if none found
-    ChipSlot* getChipSlotById(uint32_t chipId);
+    Iterator getChipSlotById(uint32_t chipId);
 
-    void addEndingEChips();
+    void addChip(const ChipSlot& newChip);
+    Iterator begin();
+    Iterator end();
 };
 
 } // namespace AutomataMod
