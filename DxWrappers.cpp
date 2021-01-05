@@ -5,7 +5,7 @@
 
 namespace DxWrappers {
 
-const WCHAR* DXGISwapChainWrapper::VC3_NAME = L"VC3Mod 1.6";
+const WCHAR* DXGISwapChainWrapper::VC3_NAME = L"VC3Mod 1.7";
 const UINT DXGISwapChainWrapper::VC3_LEN = (UINT)wcslen(VC3_NAME);
 
 const D2D1::ColorF DXGISwapChainWrapper::WATERMARK_COLOR = D2D1::ColorF(0.803f, 0.784f, 0.690f, 1.f);
