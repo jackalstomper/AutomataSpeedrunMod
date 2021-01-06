@@ -158,7 +158,7 @@ void checkStuff(uint64_t processRamStart)
     log(LogLevel::LOG_INFO, "Checker thread started. Waiting for change conditions");
 
     while (true) {
-        if (*isWorldLoaded == 1 && *playerNameSet == 1) {
+        if (*isWorldLoaded == 1 && *playerNameSet == 1 && *playerLocationPtr) {
             Vector3f* playerLocation = reinterpret_cast<Vector3f*>(*playerLocationPtr + 0x50);
 
             if (!grunSkipped && grunSkipVolume.contains(*playerLocation) && strncmp(currentPhase, "90_AB_Battle_Submerge_City", 26) == 0) {
