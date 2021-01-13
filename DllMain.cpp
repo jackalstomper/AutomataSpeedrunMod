@@ -44,10 +44,10 @@ void modPhaseJumpMethod(uint64_t processRamStartAddr) {
     // Modify all calls to phasejump to use the fastload flag.
     // Do this by inject a jump function to our custom code that sets the field to 0, then jumping back
     std::vector<uint8_t> fastLoadCode = {
-        0x41, 0xC7, 0x01, 0x00, 0x00, 0x00, 0x00,       // mov [r9],0; This sets the fastload
-        0x53,                                           // push rbx; an instruction we overwrote to make the new jmp
-        0x56,                                           // push rsi; an instruction we overwrote to make the new jmp
-        0xEB, 0x08                                      // jmp NieRAutomata.exe+51A734; Go back to original code
+        0x41, 0x83, 0x09, 0x02,     // or dword ptr [r9],02; Sets the load to use the no text screen
+        0x53,                       // push rbx; an instruction we overwrote to make the new jmp
+        0x56,                       // push rsi; an instruction we overwrote to make the new jmp
+        0xEB, 0x0B                  // jmp NieRAutomata.exe+51A734; Go back to original code
     };
 
     std::vector<uint8_t> jumpCode = {

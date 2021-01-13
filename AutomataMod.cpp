@@ -12,25 +12,31 @@ extern DxWrappers::DXGIFactoryWrapper* g_wrapper;
 
 namespace {
 
+const uint64_t JUMP_USE_LONG_LOADSCREEN = 0x1; // the long load screen with a bunch of text lines
+const uint64_t JUMP_NO_LOADSCREEN = 0x2; // no text. just a blank screen with a loading symbol
+const uint64_t JUMP_FADE_WHITE = 1LLU << 32; // fade into load with white screen
+
 // Object passed to JumpFunc. The values are what is found in memory when the game makes proper calls to JumpFunc
 struct JumpContext {
-    uint64_t fastLoad; // 0 for fast load, 1 for long load
-    uint64_t flags; // usually 0x78, when exiting to menu its 0x100000078
+    uint64_t loadscreenFlags; // 0 defaults to short load screen
+    uint64_t moreFlags; // usually 0x78, when exiting to menu its 0x100000078
     uint64_t unknownValue; // always 0 from current testing
     uint64_t stringPointer; // Points to what looks like a debug menu string table.
 
     JumpContext()
-        : fastLoad(0)
-        , flags(0x78)
+        : loadscreenFlags(JUMP_NO_LOADSCREEN)
+        , moreFlags(0x78)
         , unknownValue(0) // 0 when chapter select calls it so 0 here
         , stringPointer(0) // Setting to zero here to hopefully not break anything from the function trying to access unknown memory
     {}
 };
 
 // function addr: 0x14051A730
-// Jump code is an apparently arbitrary number assigned to some phase names. Use debug build phasejump menu to know what they are.
-// first param (RCX) is seemingly unused. RCX has 1 written to it within the function
-using JumpFunc = void __fastcall (unsigned unused, unsigned jumpCode, const char* phaseName, JumpContext* context);
+// RCX unknown - usually 0, sometimes 0xFFFFFFFF (starting new game)
+// RDX jumpCode - apparently arbitrary number assigned to some phase names. Use debug build phasejump menu to know what they are.
+// r8 phaseName
+// r9 context
+using JumpFunc = void __fastcall (unsigned unknown, unsigned jumpCode, const char* phaseName, JumpContext* context);
 
 using namespace AutomataMod;
 
