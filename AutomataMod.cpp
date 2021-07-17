@@ -5,24 +5,22 @@
 #include "InventoryManager.hpp"
 #include "ChipManager.hpp"
 #include "Log.hpp"
-#include "DxWrappers.hpp"
 #include "Util.hpp"
-
-extern DxWrappers::DXGIFactoryWrapper* g_wrapper;
+#include "FactoryWrapper.hpp"
 
 namespace {
 
 using namespace AutomataMod;
 
 // Addresses are offsets in bytes relevant to processRamStart
-const uint64_t CURRENT_PHASE_ADDR = 0x1101D58;
-const uint64_t PLAYER_SET_NAME_ADDR = 0x147B4BC;
-const uint64_t IS_WORLD_LOADED_ADDR = 0x110ADC0;
-const uint64_t ITEM_TABLE_START_ADDR = 0x197C4C4;
-const uint64_t IS_LOADING_ADDR = 0x147BF50;
-const uint64_t PLAYER_LOCATION_PTR_ADDR = 0x16053E8;
-const uint64_t CHIP_TABLE_START_ADDR = 0x197E410;
-const uint64_t UNIT_DATA_START_ADDR = 0x19844C8;
+const uint64_t CURRENT_PHASE_ADDR = 0xF64B10;
+const uint64_t IS_WORLD_LOADED_ADDR = 0xF6E240;
+const uint64_t PLAYER_SET_NAME_ADDR = 0x124DE4C;
+const uint64_t IS_LOADING_ADDR = 0x100D410;
+const uint64_t ITEM_TABLE_START_ADDR = 0x148C4C4;
+const uint64_t CHIP_TABLE_START_ADDR = 0x148E410;
+const uint64_t PLAYER_LOCATION_ADDR = 0x12553E0;
+const uint64_t UNIT_DATA_START_ADDR = 0x14944C8;
 
 char* currentPhase = nullptr;
 char16_t* playerName = nullptr;
@@ -120,7 +118,7 @@ void checkStuff(uint64_t processRamStart)
     playerNameSet = reinterpret_cast<uint32_t*>(processRamStart + PLAYER_SET_NAME_ADDR);
     isWorldLoaded = reinterpret_cast<uint32_t*>(processRamStart + IS_WORLD_LOADED_ADDR);
     isLoading = reinterpret_cast<uint32_t*>(processRamStart + IS_LOADING_ADDR);
-    playerLocationPtr = reinterpret_cast<uint64_t*>(processRamStart + PLAYER_LOCATION_PTR_ADDR);
+    playerLocationPtr = reinterpret_cast<uint64_t*>(processRamStart + PLAYER_LOCATION_ADDR);
 
     // Unit data is a collection of 8 bit bitmasks that indicate if a player has killed a unit or not.
     // Use these flags to determine if player has killed a small flyer in the correct phase to give taunt chips
@@ -131,7 +129,7 @@ void checkStuff(uint64_t processRamStart)
 
     while (true) {
         if (*isWorldLoaded == 1 && *playerNameSet == 1) {
-            Vector3f* playerLocation = reinterpret_cast<Vector3f*>(*playerLocationPtr + 0x50);
+            Vector3f* playerLocation = reinterpret_cast<Vector3f*>(playerLocationPtr);
             if (!inventoryModded && strncmp(currentPhase, "58_AB_BossArea_Fall", 19) == 0) {
                 log(LogLevel::LOG_INFO, "Detected we are in 58_AB_BossArea_Fall. Giving VC3 inventory");
                 setVc3Inventory(inventoryManager);
@@ -155,13 +153,13 @@ void checkStuff(uint64_t processRamStart)
             }
         }
 
-        if (*isLoading && g_wrapper) {
+        if (*isLoading /* && g_wrapper*/) {
             if (!dvdModeEnabled) {
-                g_wrapper->toggleDvdMode(true);
+                //g_wrapper->toggleDvdMode(true);
                 dvdModeEnabled = true;
             }
-        } else if (dvdModeEnabled && g_wrapper) {
-            g_wrapper->toggleDvdMode(false);
+        } else if (dvdModeEnabled /* && g_wrapper*/) {
+            //g_wrapper->toggleDvdMode(false);
             dvdModeEnabled = false;
         }
 

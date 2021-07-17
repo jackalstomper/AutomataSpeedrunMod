@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>xinput1_3</TargetName>
+    <TargetName>dinput8</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>xinput1_3</TargetName>
@@ -110,13 +110,13 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d2d1.lib;d3d11.lib;dwrite.lib;dxgi.lib;xinput.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d2d1.lib;d3d11.lib;dwrite.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)x64\debug\xinput1_3.dll" "D:\Games\steamapps\common\NieRAutomata\"</Command>
+      <Command>copy "$(ProjectDir)x64\debug\dinput8.dll" "D:\Games\steamapps\common\NieRAutomata\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copying xinput1_3.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
+      <Message>Copying XInput1_4.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -165,11 +165,12 @@
   <ItemGroup>
     <ClCompile Include="ChipManager.cpp" />
     <ClCompile Include="DllMain.cpp" />
-    <ClCompile Include="DxWrappers.cpp" />
+    <ClCompile Include="FactoryWrapper.cpp" />
     <ClCompile Include="iat.cpp" />
     <ClCompile Include="InventoryManager.cpp" />
     <ClCompile Include="AutomataMod.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="SwapChainWrapper.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -178,11 +179,12 @@
   <ItemGroup>
     <ClInclude Include="AutomataMod.hpp" />
     <ClInclude Include="ChipManager.hpp" />
-    <ClInclude Include="DxWrappers.hpp" />
+    <ClInclude Include="FactoryWrapper.hpp" />
     <ClInclude Include="iat.hpp" />
     <ClInclude Include="InventoryManager.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="PointerIterator.hpp" />
+    <ClInclude Include="SwapChainWrapper.hpp" />
     <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
