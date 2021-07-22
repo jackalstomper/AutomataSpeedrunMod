@@ -158,7 +158,7 @@
       <AdditionalDependencies>d2d1.lib;d3d11.lib;dwrite.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)x64\debug\dinput8.dll" "D:\Games\steamapps\common\NieRAutomata\"</Command>
+      <Command>copy "$(ProjectDir)x64\release\dinput8.dll" "D:\Games\steamapps\common\NieRAutomata\"</Command>
       <Message>Copying dinput8.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
