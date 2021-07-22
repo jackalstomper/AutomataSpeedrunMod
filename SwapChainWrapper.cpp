@@ -37,7 +37,11 @@ void DXGISwapChainWrapper::resetLocation(D2D1_SIZE_F& screenSize) {
 }
 
 void DXGISwapChainWrapper::renderWatermark() {
-    static const  D2D1::Matrix3x2F root = D2D1::Matrix3x2F::Identity();
+    if (!m_brush || !m_shadowBrush) {
+        return;
+    }
+
+    static const D2D1::Matrix3x2F root = D2D1::Matrix3x2F::Identity();
     std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
 
     CComPtr<IDXGISurface> dxgiBackBuffer;
