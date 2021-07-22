@@ -54,12 +54,9 @@ ULONG __stdcall DXGIFactoryWrapper::Release() {
 HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForHwnd(IUnknown* pDevice, HWND hWnd, const DXGI_SWAP_CHAIN_DESC1* pDesc, const DXGI_SWAP_CHAIN_FULLSCREEN_DESC* pFullscreenDesc, IDXGIOutput* pRestrictToOutput, IDXGISwapChain1** ppSwapChain) {
     CComPtr<IDXGISwapChain1> swapChain;
 
-    RECT rect;
-    GetWindowRect(hWnd, &rect);
-
     HRESULT result = m_target->CreateSwapChainForHwnd(pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, &swapChain);
     if (SUCCEEDED(result)) {
-        m_currentSwapChain = new DXGISwapChainWrapper(pDevice, swapChain, m_D2DFactory, rect);
+        m_currentSwapChain = new DXGISwapChainWrapper(pDevice, swapChain, m_D2DFactory);
         *ppSwapChain = m_currentSwapChain;
         return result;
     }

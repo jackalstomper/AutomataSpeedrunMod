@@ -40,17 +40,15 @@ void DXGISwapChainWrapper::renderWatermark() {
     static const  D2D1::Matrix3x2F root = D2D1::Matrix3x2F::Identity();
     std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
 
-    CComPtr<IDXGISurface> pBackBuffer;
-    m_target->GetBuffer(0, __uuidof(IDXGISurface), (void**)&pBackBuffer);
-    if (!pBackBuffer) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling GetBuffer.");
+    CComPtr<IDXGISurface> dxgiBackBuffer;
+    m_target->GetBuffer(0, __uuidof(IDXGISurface), (void**)&dxgiBackBuffer);
+    if (!dxgiBackBuffer) {
         return;
     }
 
     CComPtr<ID2D1Bitmap1> bitmap;
-    m_deviceContext->CreateBitmapFromDxgiSurface(pBackBuffer, &BITMAP_PROPERTIES, &bitmap);
+    m_deviceContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer, &BITMAP_PROPERTIES, &bitmap);
     if (!bitmap) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateBitmapFromDxgiSurface.");
         return;
     }
 
@@ -61,7 +59,7 @@ void DXGISwapChainWrapper::renderWatermark() {
 
     if (!m_textFormat) {
         CComPtr<IDWriteFactory> dwFactory;
-        DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&dwFactory);
+        DWriteCreateFactory(DWRITE_FACTORY_TYPE_ISOLATED, __uuidof(IDWriteFactory), (IUnknown**)&dwFactory);
         dwFactory->CreateTextFormat(
             L"Consolas",
             NULL,
@@ -72,6 +70,7 @@ void DXGISwapChainWrapper::renderWatermark() {
             L"en-us",
             &m_textFormat
         );
+
         if (!m_textFormat) {
             AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateTextFormat.");
             return;
@@ -104,6 +103,8 @@ void DXGISwapChainWrapper::renderWatermark() {
 
     D2D1_RECT_F rect = { m_location.x, m_location.y, m_location.x + 150.f, m_location.y + textHeight };
 
+    CComPtr<ID2D1Image> oldTarget;
+    m_deviceContext->GetTarget(&oldTarget);
     m_deviceContext->SetTarget(bitmap);
     m_deviceContext->BeginDraw();
     m_deviceContext->SetTransform(root);
@@ -116,12 +117,12 @@ void DXGISwapChainWrapper::renderWatermark() {
     // Draw main text
     m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_brush);
     m_deviceContext->EndDraw();
+    m_deviceContext->SetTarget(oldTarget);
     m_lastFrame = now;
 }
 
-DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapChain1> target, CComPtr<ID2D1Factory2> d2dFactory, RECT screenRect) {
+DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapChain1> target, CComPtr<ID2D1Factory2> d2dFactory) {
     m_refCount = 1;
-    long screenHeight = screenRect.bottom - screenRect.top;
     m_target = target;
     m_dvdMode = false;
     
@@ -129,11 +130,8 @@ DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapC
 
     CComPtr<IDXGIDevice> pDXGIDevice;
     HRESULT queryResult = pDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice);
-    if (queryResult == E_POINTER) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get DXGIDevice. Error: E_POINTER");
-        return;
-    } else if (queryResult == E_NOINTERFACE) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get DXGIDevice. Error: E_NOINTERFACE");
+    if (!SUCCEEDED(queryResult)) {
+        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get DXGIDevice. Error code: " + std::to_string(queryResult));
         return;
     }
 

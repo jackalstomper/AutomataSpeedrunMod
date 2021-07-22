@@ -37,7 +37,7 @@ class DXGISwapChainWrapper : public IDXGISwapChain1 {
     void resetLocation(D2D1_SIZE_F& screenSize);
 
 public:
-    DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapChain1> target, CComPtr<ID2D1Factory2> d2dFactory, RECT screenRect);
+    DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapChain1> target, CComPtr<ID2D1Factory2> d2dFactory);
     virtual ~DXGISwapChainWrapper();
     void toggleDvdMode(bool enabled);
 
