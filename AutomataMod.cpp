@@ -1,12 +1,10 @@
-﻿#include <cstdint>
+﻿#include "AutomataMod.hpp"
+#include <cstdint>
 #include <cstring>
 #include <string>
 #include <thread>
-#include "InventoryManager.hpp"
-#include "ChipManager.hpp"
 #include "Log.hpp"
 #include "Util.hpp"
-#include "FactoryWrapper.hpp"
 
 namespace {
 
@@ -22,73 +20,71 @@ const uint64_t CHIP_TABLE_START_ADDR = 0x148E410;
 const uint64_t PLAYER_LOCATION_ADDR = 0x12553E0;
 const uint64_t UNIT_DATA_START_ADDR = 0x14944C8;
 
-char* currentPhase = nullptr;
-char16_t* playerName = nullptr;
-uint32_t* playerNameSet = nullptr;
-uint64_t* playerLocationPtr = nullptr;
-uint32_t* isWorldLoaded = nullptr;
-uint32_t* isLoading = nullptr;
-bool inventoryModded = false;
-bool fishAdded = false;
-bool dvdModeEnabled = false;
-bool tauntChipsAdded = false;
-
 Volume mackerelVolume(Vector3f(324.f, -100.f, 717.f), 293.f, 50.f, 253.f);
 
-void modifyChipInventory(ChipManager& chipManager) {
-    size_t tauntCount = 0;
-    // Find existing taunt 2 chips and change their size to 6 if found
-    for (auto i = chipManager.begin(); i != chipManager.end(); ++i) {
-        if (i->id == ChipManager::TAUNT2_CHIP_ID) {
-            log(LogLevel::LOG_INFO, "Found Taunt+2 chip. Setting size to 6.");
-            ++tauntCount;
-            i->slotCost = 6;
+} // namespace
+
+namespace AutomataMod {
+
+ModChecker::ModChecker(uint64_t processRamStart) :
+    m_inventoryManager(processRamStart + ITEM_TABLE_START_ADDR),
+    m_chipManager(processRamStart + CHIP_TABLE_START_ADDR),
+    m_mackerelVolume(Volume(Vector3f(324.f, -100.f, 717.f), 293.f, 50.f, 253.f))
+{
+    m_currentPhase = reinterpret_cast<char*>(processRamStart + CURRENT_PHASE_ADDR);
+    m_playerNameSet = reinterpret_cast<uint32_t*>(processRamStart + PLAYER_SET_NAME_ADDR);
+    m_isWorldLoaded = reinterpret_cast<uint32_t*>(processRamStart + IS_WORLD_LOADED_ADDR);
+    m_isLoading = reinterpret_cast<uint32_t*>(processRamStart + IS_LOADING_ADDR);
+    m_playerLocationPtr = reinterpret_cast<uint64_t*>(processRamStart + PLAYER_LOCATION_ADDR);
+    m_unitDataFlags = reinterpret_cast<uint8_t*>(processRamStart + UNIT_DATA_START_ADDR);
+
+    m_inventoryModded = false;
+    m_fishAdded = false;
+    m_dvdModeEnabled = false;
+    m_tauntChipsAdded = false;
+}
+
+void ModChecker::checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper)
+{
+    if (*m_isWorldLoaded == 1 && *m_playerNameSet == 1) {
+        Vector3f* playerLocation = reinterpret_cast<Vector3f*>(m_playerLocationPtr);
+        if (!m_inventoryModded && strncmp(m_currentPhase, "58_AB_BossArea_Fall", 19) == 0) {
+            log(LogLevel::LOG_INFO, "Detected we are in 58_AB_BossArea_Fall. Giving VC3 inventory");
+            setVc3Inventory();
+            m_inventoryModded = true;
+        } else if (!m_tauntChipsAdded && (m_unitDataFlags[7] & 2) && strncmp(m_currentPhase, "52_AB_Danchi_Haikyo", 19) == 0) {
+            log(LogLevel::LOG_INFO, "Detected we are in 52_AB_Danchi_Haikyo and player has killed a small desert flyer. Adding Taunt+2 chips.");
+            modifyChipInventory();
+            m_tauntChipsAdded = true;
+        } else if (!m_fishAdded && strncmp(m_currentPhase, "00_60_A_RobotM_Pro_Tutorial", 27) == 0) {
+            m_fishAdded = adjustFishInventory(!mackerelVolume.contains(*playerLocation));
         }
-
-        if (tauntCount >= 2)
-            break;
     }
 
-    // Ensure we have a minimum of 2 T+2 chips
-    if (tauntCount < 2) {
-        size_t addCount = 2 - tauntCount;
-        ChipManager::ChipSlot newTauntChip{ 228u, 3228u, 25u, 2u, 6u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 0u };
-        for (size_t i = 0; i < addCount; ++i)
-            chipManager.addChip(newTauntChip);
-
-        log(LogLevel::LOG_INFO, "Added " + std::to_string(addCount) + " Taunt+2 chips.");
-    } else {
-        log(LogLevel::LOG_INFO, "Player already has 2 Taunt+2 chips.");
+    if (*m_isWorldLoaded == 0 && *m_playerNameSet == 0) {
+        if (m_inventoryModded || m_tauntChipsAdded || m_fishAdded) {
+            log(LogLevel::LOG_INFO, "Detected the run has been reset. Resetting inventory checker.");
+            log(LogLevel::LOG_INFO, "-------------------------------------------------------------------------------");
+            m_inventoryModded = false;
+            m_tauntChipsAdded = false;
+            m_fishAdded = false;
+        }
     }
-}
 
-void addInventory(InventoryManager& inventoryManager, uint32_t itemId, uint32_t quantity)
-{
-    InventoryManager::Iterator item = inventoryManager.getItemSlotById(itemId);
-    if (item == inventoryManager.end()) {
-        log(LogLevel::LOG_INFO, "No items found. Adding " + std::to_string(quantity) + " items");
-        inventoryManager.addItem({ itemId, ~0u, quantity });
-    } else {
-        log(LogLevel::LOG_INFO, "Found " + std::to_string(item->quantity) + " items. Adjusting count to " + std::to_string(quantity));
-        item->quantity = quantity;
+    if (*m_isLoading) {
+        if (!m_dvdModeEnabled) {
+            factoryWrapper->toggleDvdMode(true);
+            m_dvdModeEnabled = true;
+        }
+    } else if (m_dvdModeEnabled) {
+        factoryWrapper->toggleDvdMode(false);
+        m_dvdModeEnabled = false;
     }
 }
 
-void setVc3Inventory(InventoryManager& inventoryManager)
+bool ModChecker::adjustFishInventory(bool shouldDeleteFish)
 {
-    // In order to get VC3 after adam pit we need:
-    // 4 dented plates
-    // 3 severed cables
-    log(LogLevel::LOG_INFO, "Checking Dented Plates");
-    addInventory(inventoryManager, InventoryManager::DENTED_PLATE_ID, 4);
-    log(LogLevel::LOG_INFO, "Checking Severed Cables");
-    addInventory(inventoryManager, InventoryManager::SEVERED_CABLE_ID, 3);
-    log(LogLevel::LOG_INFO, "Done adjusting inventory");
-}
-
-bool adjustFishInventory(InventoryManager& inventoryManager, bool shouldDeleteFish)
-{
-    std::vector<InventoryManager::Iterator> fishies = inventoryManager.getAllItemsByRange(
+    std::vector<InventoryManager::Iterator> fishies = m_inventoryManager.getAllItemsByRange(
         InventoryManager::FISH_AROWANA_ID, InventoryManager::FISH_BROKEN_FIREARM_ID);
 
     if (fishies.size() > 0) {
@@ -106,64 +102,54 @@ bool adjustFishInventory(InventoryManager& inventoryManager, bool shouldDeleteFi
     return false;
 }
 
-} // namespace
-
-namespace AutomataMod {
-
-void checkStuff(uint64_t processRamStart)
+void ModChecker::setVc3Inventory()
 {
-    InventoryManager inventoryManager(processRamStart + ITEM_TABLE_START_ADDR);
-    ChipManager chipManager(processRamStart + CHIP_TABLE_START_ADDR);
-    currentPhase = reinterpret_cast<char*>(processRamStart + CURRENT_PHASE_ADDR);
-    playerNameSet = reinterpret_cast<uint32_t*>(processRamStart + PLAYER_SET_NAME_ADDR);
-    isWorldLoaded = reinterpret_cast<uint32_t*>(processRamStart + IS_WORLD_LOADED_ADDR);
-    isLoading = reinterpret_cast<uint32_t*>(processRamStart + IS_LOADING_ADDR);
-    playerLocationPtr = reinterpret_cast<uint64_t*>(processRamStart + PLAYER_LOCATION_ADDR);
+    // In order to get VC3 after adam pit we need:
+    // 4 dented plates
+    // 3 severed cables
+    log(LogLevel::LOG_INFO, "Checking Dented Plates");
+    addInventory(InventoryManager::DENTED_PLATE_ID, 4);
+    log(LogLevel::LOG_INFO, "Checking Severed Cables");
+    addInventory(InventoryManager::SEVERED_CABLE_ID, 3);
+    log(LogLevel::LOG_INFO, "Done adjusting inventory");
+}
 
-    // Unit data is a collection of 8 bit bitmasks that indicate if a player has killed a unit or not.
-    // Use these flags to determine if player has killed a small flyer in the correct phase to give taunt chips
-    // buffer size: 24 bytes
-    const uint8_t* unitDataFlags = reinterpret_cast<uint8_t*>(processRamStart + UNIT_DATA_START_ADDR);
+void ModChecker::addInventory(uint32_t itemId, uint32_t quantity)
+{
+    InventoryManager::Iterator item = m_inventoryManager.getItemSlotById(itemId);
+    if (item == m_inventoryManager.end()) {
+        log(LogLevel::LOG_INFO, "No items found. Adding " + std::to_string(quantity) + " items");
+        m_inventoryManager.addItem({ itemId, ~0u, quantity });
+    } else {
+        log(LogLevel::LOG_INFO, "Found " + std::to_string(item->quantity) + " items. Adjusting count to " + std::to_string(quantity));
+        item->quantity = quantity;
+    }
+}
 
-    log(LogLevel::LOG_INFO, "Checker thread started. Waiting for change conditions");
-
-    while (true) {
-        if (*isWorldLoaded == 1 && *playerNameSet == 1) {
-            Vector3f* playerLocation = reinterpret_cast<Vector3f*>(playerLocationPtr);
-            if (!inventoryModded && strncmp(currentPhase, "58_AB_BossArea_Fall", 19) == 0) {
-                log(LogLevel::LOG_INFO, "Detected we are in 58_AB_BossArea_Fall. Giving VC3 inventory");
-                setVc3Inventory(inventoryManager);
-                inventoryModded = true;
-            } else if (!tauntChipsAdded && (unitDataFlags[7] & 2) && strncmp(currentPhase, "52_AB_Danchi_Haikyo", 19) == 0) {
-                log(LogLevel::LOG_INFO, "Detected we are in 52_AB_Danchi_Haikyo and player has killed a small desert flyer. Adding Taunt+2 chips.");
-                modifyChipInventory(chipManager);
-                tauntChipsAdded = true;
-            } else if (!fishAdded && strncmp(currentPhase, "00_60_A_RobotM_Pro_Tutorial", 27) == 0) {
-                fishAdded = adjustFishInventory(inventoryManager, !mackerelVolume.contains(*playerLocation));
-            }
+void ModChecker::modifyChipInventory() {
+    size_t tauntCount = 0;
+    // Find existing taunt 2 chips and change their size to 6 if found
+    for (auto i = m_chipManager.begin(); i != m_chipManager.end(); ++i) {
+        if (i->id == ChipManager::TAUNT2_CHIP_ID) {
+            log(LogLevel::LOG_INFO, "Found Taunt+2 chip. Setting size to 6.");
+            ++tauntCount;
+            i->slotCost = 6;
         }
 
-        if (*isWorldLoaded == 0 && *playerNameSet == 0) {
-            if (inventoryModded || tauntChipsAdded || fishAdded) {
-                log(LogLevel::LOG_INFO, "Detected the run has been reset. Resetting inventory checker.");
-                log(LogLevel::LOG_INFO, "-------------------------------------------------------------------------------");
-                inventoryModded = false;
-                tauntChipsAdded = false;
-                fishAdded = false;
-            }
-        }
+        if (tauntCount >= 2)
+            break;
+    }
 
-        if (*isLoading /* && g_wrapper*/) {
-            if (!dvdModeEnabled) {
-                //g_wrapper->toggleDvdMode(true);
-                dvdModeEnabled = true;
-            }
-        } else if (dvdModeEnabled /* && g_wrapper*/) {
-            //g_wrapper->toggleDvdMode(false);
-            dvdModeEnabled = false;
-        }
+    // Ensure we have a minimum of 2 T+2 chips
+    if (tauntCount < 2) {
+        size_t addCount = 2 - tauntCount;
+        ChipManager::ChipSlot newTauntChip{ 228u, 3228u, 25u, 2u, 6u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 0u };
+        for (size_t i = 0; i < addCount; ++i)
+            m_chipManager.addChip(newTauntChip);
 
-        std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(250)); // check stuff 4 times a second
+        log(LogLevel::LOG_INFO, "Added " + std::to_string(addCount) + " Taunt+2 chips.");
+    } else {
+        log(LogLevel::LOG_INFO, "Player already has 2 Taunt+2 chips.");
     }
 }
 

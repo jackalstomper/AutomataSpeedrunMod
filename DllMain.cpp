@@ -17,8 +17,9 @@ DLLHook dinput;
 std::unique_ptr<std::thread> checkerThread;
 std::unique_ptr<IAT::IATHook> d3dCreateDeviceHook;
 std::unique_ptr<IAT::IATHook> dxgiCreateFactoryHook;
-
+std::unique_ptr<AutomataMod::ModChecker> modChecker;
 CComPtr<DxWrappers::DXGIFactoryWrapper> wrapper;
+bool shouldStopChecker = false;
 
 // Need to intercept the DXGI factory to return our wrapper of it
 HRESULT WINAPI CreateDXGIFactoryHooked(REFIID riid, void** ppFactory) {
@@ -71,8 +72,12 @@ void init() {
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Initializing AutomataMod v1.7");
     uint64_t processRamStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Process ram start: " + std::to_string(processRamStartAddr));
+    modChecker = std::unique_ptr<AutomataMod::ModChecker>(new AutomataMod::ModChecker(processRamStartAddr));
     checkerThread = std::unique_ptr<std::thread>(new std::thread([processRamStartAddr]() {
-        AutomataMod::checkStuff(processRamStartAddr);
+        while (!shouldStopChecker) {
+            modChecker->checkStuff(wrapper);
+            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(250)); // check stuff 4 times a second
+        }
     }));
 }
 
@@ -95,8 +100,11 @@ extern "C" {
         if (reason == DLL_PROCESS_ATTACH) {
             d3dCreateDeviceHook = std::unique_ptr<IAT::IATHook>(new IAT::IATHook("d3d11.dll", "D3D11CreateDevice", (LPCVOID)D3D11CreateDeviceHooked));
             dxgiCreateFactoryHook = std::unique_ptr<IAT::IATHook>(new IAT::IATHook("dxgi.dll", "CreateDXGIFactory", (LPCVOID)CreateDXGIFactoryHooked));
+            shouldStopChecker = false;
             init();
         } else if (reason == DLL_PROCESS_DETACH) {
+            shouldStopChecker = true;
+
             if (d3dCreateDeviceHook) {
                 d3dCreateDeviceHook = nullptr;
             }
