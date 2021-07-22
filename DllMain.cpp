@@ -8,13 +8,11 @@
 #include "Log.hpp"
 #include "iat.hpp"
 #include "FactoryWrapper.hpp"
+#include "DLLHook.hpp"
 
 namespace {
 
-HMODULE dinput = NULL;
-FARPROC createProc = NULL;
-
-using DirectInput8CreatePtr = HRESULT(WINAPI*)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
+DLLHook dinput;
 
 std::unique_ptr<std::thread> checkerThread;
 std::unique_ptr<IAT::IATHook> d3dCreateDeviceHook;
@@ -78,37 +76,16 @@ void init() {
     }));
 }
 
-bool loadDinput() {
-    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Loading dinput8.dll");
-    std::vector<CHAR> buff(1024);
-    UINT len = GetSystemWindowsDirectory(buff.data(), buff.size());
-    if (len > buff.size()) {
-        buff.resize(len);
-        len = GetSystemWindowsDirectory(buff.data(), len);
+template<typename FuncPtr>
+FuncPtr hookFunc(const std::string& funcName) {
+    if (!dinput) {
+        dinput = DLLHook("dinput8.dll");
+        if (!dinput) {
+            return nullptr;
+        }
     }
 
-    if (len == 0) {
-        // failed to get system directory
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get windows system directory. Error code: " + std::to_string(GetLastError()));
-        return false;
-    }
-
-    std::string filePath(buff.begin(), buff.begin() + len);
-    filePath += "\\system32\\dinput8.dll";
-    dinput = LoadLibrary(filePath.c_str());
-    if (dinput == NULL) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to load dinput8.dll Error code: " + std::to_string(GetLastError()));
-        return false;
-    }
-
-    createProc = GetProcAddress(dinput, "DirectInput8Create");
-    if (createProc == NULL) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to load DirectInput8Create method. Error code: " + std::to_string(GetLastError()));
-        return false;
-    }
-
-    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Finished loading dinput8.dll");
-    return true;
+    return dinput.hookFunc<FuncPtr>(funcName);
 }
 
 } // namespace
@@ -116,6 +93,8 @@ bool loadDinput() {
 extern "C" {
     BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
         if (reason == DLL_PROCESS_ATTACH) {
+            d3dCreateDeviceHook = std::unique_ptr<IAT::IATHook>(new IAT::IATHook("d3d11.dll", "D3D11CreateDevice", (LPCVOID)D3D11CreateDeviceHooked));
+            dxgiCreateFactoryHook = std::unique_ptr<IAT::IATHook>(new IAT::IATHook("dxgi.dll", "CreateDXGIFactory", (LPCVOID)CreateDXGIFactoryHooked));
             init();
         } else if (reason == DLL_PROCESS_DETACH) {
             if (d3dCreateDeviceHook) {
@@ -138,14 +117,9 @@ extern "C" {
         return TRUE;
     }
 
-    HRESULT WINAPI DirectInput8Create_new(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter) {
-        if (createProc == NULL) {
-            if (!loadDinput()) {
-                return E_FAIL;
-            }
-        }
-
-        DirectInput8CreatePtr ptr = (DirectInput8CreatePtr)createProc;
+    HRESULT WINAPI DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter) {
+        auto ptr = hookFunc<HRESULT(WINAPI*)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN)>("DirectInput8Create");
+        if (!ptr) return E_FAIL;
         return ptr(hinst, dwVersion, riidltf, ppvOut, punkOuter);
     }
 }

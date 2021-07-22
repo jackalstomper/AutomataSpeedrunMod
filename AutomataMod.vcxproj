@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ChipManager.cpp" />
+    <ClCompile Include="DLLHook.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FactoryWrapper.cpp" />
     <ClCompile Include="iat.cpp" />
@@ -179,6 +180,7 @@
   <ItemGroup>
     <ClInclude Include="AutomataMod.hpp" />
     <ClInclude Include="ChipManager.hpp" />
+    <ClInclude Include="DLLHook.hpp" />
     <ClInclude Include="FactoryWrapper.hpp" />
     <ClInclude Include="iat.hpp" />
     <ClInclude Include="InventoryManager.hpp" />
