@@ -8,8 +8,6 @@
 
 namespace {
 
-using namespace AutomataMod;
-
 // Addresses are offsets in bytes relevant to processRamStart
 const uint64_t CURRENT_PHASE_ADDR = 0xF64B10;
 const uint64_t IS_WORLD_LOADED_ADDR = 0xF6E240;
@@ -19,8 +17,6 @@ const uint64_t ITEM_TABLE_START_ADDR = 0x148C4C4;
 const uint64_t CHIP_TABLE_START_ADDR = 0x148E410;
 const uint64_t PLAYER_LOCATION_ADDR = 0x12553E0;
 const uint64_t UNIT_DATA_START_ADDR = 0x14944C8;
-
-Volume mackerelVolume(Vector3f(324.f, -100.f, 717.f), 293.f, 50.f, 253.f);
 
 } // namespace
 
@@ -57,7 +53,7 @@ void ModChecker::checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapp
             modifyChipInventory();
             m_tauntChipsAdded = true;
         } else if (!m_fishAdded && strncmp(m_currentPhase, "00_60_A_RobotM_Pro_Tutorial", 27) == 0) {
-            m_fishAdded = adjustFishInventory(!mackerelVolume.contains(*playerLocation));
+            m_fishAdded = adjustFishInventory(!m_mackerelVolume.contains(*playerLocation));
         }
     }
 
