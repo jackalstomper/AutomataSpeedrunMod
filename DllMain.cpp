@@ -1,27 +1,18 @@
-#include <windows.h>
-#include <thread>
-#include <vector>
 #include <d3d11.h>
-#include <dxgi1_2.h>
+#include <atlbase.h>
 #include <string>
-#include "AutomataMod.hpp"
-#include "Log.hpp"
+#include <memory>
 #include "iat.hpp"
-#include "FactoryWrapper.hpp"
 #include "DLLHook.hpp"
+#include "Log.hpp"
+#include "FactoryWrapper.hpp"
 
 namespace {
 
 DLLHook dinput;
-
-std::unique_ptr<std::thread> checkerThread;
-std::unique_ptr<IAT::IATHook> d3dCreateDeviceHook;
 std::unique_ptr<IAT::IATHook> dxgiCreateFactoryHook;
-std::unique_ptr<AutomataMod::ModChecker> modChecker;
-CComPtr<DxWrappers::DXGIFactoryWrapper> wrapper;
-bool shouldStopChecker = false;
+CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper;
 
-// Need to intercept the DXGI factory to return our wrapper of it
 HRESULT WINAPI CreateDXGIFactoryHooked(REFIID riid, void** ppFactory) {
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "CreateDXGIFactory called");
 
@@ -32,53 +23,14 @@ HRESULT WINAPI CreateDXGIFactoryHooked(REFIID riid, void** ppFactory) {
     CComPtr<IDXGIFactory2> factory;
     HRESULT facResult = CreateDXGIFactory(riid, (void**)&factory);
     if (SUCCEEDED(facResult)) {
-        wrapper = new DxWrappers::DXGIFactoryWrapper(factory);
-        (*(IDXGIFactory2**)ppFactory) = (IDXGIFactory2*)wrapper;
+        factoryWrapper = new DxWrappers::DXGIFactoryWrapper(factory);
+        (*(IDXGIFactory2**)ppFactory) = (IDXGIFactory2*)factoryWrapper;
         AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Created DXGIFactoryWrapper");
     } else {
         AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Failed to create DXGIFactoryWrapper.");
     }
 
     return facResult;
-}
-
-// need to intercept the D3D11 create device call to add D2D support
-HRESULT WINAPI D3D11CreateDeviceHooked(
-    IDXGIAdapter* pAdapter,
-    D3D_DRIVER_TYPE         DriverType,
-    HMODULE                 Software,
-    UINT                    Flags,
-    const D3D_FEATURE_LEVEL* pFeatureLevels,
-    UINT                    FeatureLevels,
-    UINT                    SDKVersion,
-    ID3D11Device** ppDevice,
-    D3D_FEATURE_LEVEL* pFeatureLevel,
-    ID3D11DeviceContext** ppImmediateContext
-) {
-    return D3D11CreateDevice(
-        pAdapter,
-        DriverType,
-        Software,
-        Flags | D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-        pFeatureLevels,
-        FeatureLevels,
-        SDKVersion,
-        ppDevice,
-        pFeatureLevel,
-        ppImmediateContext);
-}
-
-void init() {
-    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Initializing AutomataMod v1.7");
-    uint64_t processRamStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
-    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Process ram start: " + std::to_string(processRamStartAddr));
-    modChecker = std::unique_ptr<AutomataMod::ModChecker>(new AutomataMod::ModChecker(processRamStartAddr));
-    checkerThread = std::unique_ptr<std::thread>(new std::thread([processRamStartAddr]() {
-        while (!shouldStopChecker) {
-            modChecker->checkStuff(wrapper);
-            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(250)); // check stuff 4 times a second
-        }
-    }));
 }
 
 template<typename FuncPtr>
@@ -98,28 +50,10 @@ FuncPtr hookFunc(const std::string& funcName) {
 extern "C" {
     BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
         if (reason == DLL_PROCESS_ATTACH) {
-            d3dCreateDeviceHook = std::unique_ptr<IAT::IATHook>(new IAT::IATHook("d3d11.dll", "D3D11CreateDevice", (LPCVOID)D3D11CreateDeviceHooked));
             dxgiCreateFactoryHook = std::unique_ptr<IAT::IATHook>(new IAT::IATHook("dxgi.dll", "CreateDXGIFactory", (LPCVOID)CreateDXGIFactoryHooked));
-            shouldStopChecker = false;
-            init();
         } else if (reason == DLL_PROCESS_DETACH) {
-            shouldStopChecker = true;
-
-            if (d3dCreateDeviceHook) {
-                d3dCreateDeviceHook = nullptr;
-            }
-
-            if (dxgiCreateFactoryHook) {
-                dxgiCreateFactoryHook = nullptr;
-            }
-
-            if (checkerThread) {
-                checkerThread = nullptr;
-            }
-
-            if (wrapper) {
-                wrapper = nullptr;
-            }
+            factoryWrapper = nullptr;
+            dxgiCreateFactoryHook = nullptr;
         }
 
         return TRUE;

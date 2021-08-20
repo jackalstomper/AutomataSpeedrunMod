@@ -1,45 +1,22 @@
 #pragma once
 
-#include <d2d1_2.h>
-#include <dwrite.h>
 #include <dxgi1_2.h>
 #include <atlbase.h>
-#include <chrono>
+#include <memory>
+#include <optional>
+#include "ImguiHandler.hpp"
 
 namespace DxWrappers {
 
 class DXGISwapChainWrapper : public IDXGISwapChain1 {
-    static const WCHAR* VC3_NAME;
-    static const UINT VC3_LEN;
-    static const D2D1::ColorF WATERMARK_COLOR;
-    static const D2D1::ColorF SHADOW_COLOR;
-    static const D2D1_BITMAP_PROPERTIES1 BITMAP_PROPERTIES;
-
+    std::shared_ptr<ImguiHandler> m_imguiHandler;
     ULONG m_refCount;
     CComPtr<IDXGISwapChain1> m_target;
-    CComPtr<ID2D1DeviceContext> m_deviceContext;
-    CComPtr<ID2D1Device> m_D2DDevice;
-    CComPtr<IDWriteTextFormat> m_textFormat;
-    CComPtr<ID2D1SolidColorBrush> m_brush;
-    CComPtr<ID2D1SolidColorBrush> m_shadowBrush;
-
-    bool m_dvdMode; // true when watermark should bounce around
-    D2D1_VECTOR_2F m_location;
-    D2D1_VECTOR_2F m_velocity;
-    std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame;
-
-    void renderWatermark();
-
-    // Roates velocity in a random direction
-    void rotateVelocity();
-
-    // Resets location to the default position
-    void resetLocation(D2D1_SIZE_F& screenSize);
 
 public:
-    DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapChain1> target, CComPtr<ID2D1Factory2> d2dFactory);
+    DXGISwapChainWrapper(std::unique_ptr<ImguiHandler> imguiHandler, CComPtr<IDXGISwapChain1> target);
     virtual ~DXGISwapChainWrapper();
-    void toggleDvdMode(bool enabled);
+    std::shared_ptr<ImguiHandler> getImguiHandler() const;
 
     virtual HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
     virtual ULONG __stdcall AddRef() override;

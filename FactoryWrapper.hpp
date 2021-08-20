@@ -1,9 +1,9 @@
 #pragma once
 
-#include <d2d1_2.h>
-#include <dwrite.h>
 #include <dxgi1_2.h>
 #include <atlbase.h>
+#include <memory>
+#include <optional>
 #include "SwapChainWrapper.hpp"
 
 namespace DxWrappers {
@@ -11,13 +11,12 @@ namespace DxWrappers {
 class DXGIFactoryWrapper : public IDXGIFactory2 {
     ULONG m_refCount;
     CComPtr<IDXGIFactory2> m_target;
-    CComPtr<ID2D1Factory2> m_D2DFactory;
     CComPtr<DXGISwapChainWrapper> m_currentSwapChain;
 
 public:
     DXGIFactoryWrapper(CComPtr<IDXGIFactory2> target);
     virtual ~DXGIFactoryWrapper();
-    void toggleDvdMode(bool enabled);
+    CComPtr<DXGISwapChainWrapper> getSwapChain() const;
 
     virtual HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
     virtual ULONG __stdcall AddRef() override;

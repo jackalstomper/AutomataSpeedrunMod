@@ -104,6 +104,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>AUTOMATA_LOG;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\icefire\Documents\development\AutomataSpeedrunMod\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
@@ -149,6 +150,7 @@
       <PreprocessorDefinitions>AUTOMATA_RELEASE_TARGET;AUTOMATA_LOG;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>None</DebugInformationFormat>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\icefire\Documents\development\AutomataSpeedrunMod\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -164,13 +166,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ChipManager.cpp" />
+    <ClCompile Include="DebugMenu.cpp" />
     <ClCompile Include="DLLHook.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FactoryWrapper.cpp" />
     <ClCompile Include="iat.cpp" />
+    <ClCompile Include="ImguiHandler.cpp" />
+    <ClCompile Include="imgui\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_demo.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_tables.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="InventoryManager.cpp" />
     <ClCompile Include="AutomataMod.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="PhaseJump.cpp" />
     <ClCompile Include="SwapChainWrapper.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
@@ -180,11 +192,14 @@
   <ItemGroup>
     <ClInclude Include="AutomataMod.hpp" />
     <ClInclude Include="ChipManager.hpp" />
+    <ClInclude Include="DebugMenu.hpp" />
     <ClInclude Include="DLLHook.hpp" />
     <ClInclude Include="FactoryWrapper.hpp" />
     <ClInclude Include="iat.hpp" />
+    <ClInclude Include="ImguiHandler.hpp" />
     <ClInclude Include="InventoryManager.hpp" />
     <ClInclude Include="Log.hpp" />
+    <ClInclude Include="PhaseJump.hpp" />
     <ClInclude Include="PointerIterator.hpp" />
     <ClInclude Include="SwapChainWrapper.hpp" />
     <ClInclude Include="Util.hpp" />

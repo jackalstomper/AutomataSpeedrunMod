@@ -1,24 +1,18 @@
 #include "FactoryWrapper.hpp"
-#include "SwapChainWrapper.hpp"
 #include "Log.hpp"
-#include <cmath>
-#include <random>
+#include "ImguiHandler.hpp"
 
 namespace DxWrappers {
 
 DXGIFactoryWrapper::DXGIFactoryWrapper(CComPtr<IDXGIFactory2> target) {
     m_refCount = 1;
     m_target = target;
-
-    D2D1_FACTORY_OPTIONS opt = { D2D1_DEBUG_LEVEL_ERROR };
-    D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory2), &opt, (void**)&m_D2DFactory);
 }
 
 DXGIFactoryWrapper::~DXGIFactoryWrapper() {}
 
-void DXGIFactoryWrapper::toggleDvdMode(bool enabled) {
-    if (m_currentSwapChain)
-        m_currentSwapChain->toggleDvdMode(enabled);
+CComPtr<DXGISwapChainWrapper> DXGIFactoryWrapper::getSwapChain() const {
+    return m_currentSwapChain;
 }
 
 HRESULT __stdcall DXGIFactoryWrapper::QueryInterface(REFIID riid, void** ppvObject) {
@@ -44,8 +38,8 @@ ULONG __stdcall DXGIFactoryWrapper::Release() {
     }
 
     if (m_refCount == 0) {
-        m_D2DFactory = nullptr;
         m_currentSwapChain = nullptr;
+        m_target = nullptr;
     }
 
     return m_refCount;
@@ -56,13 +50,22 @@ HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForHwnd(IUnknown* pDevice, 
 
     HRESULT result = m_target->CreateSwapChainForHwnd(pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, &swapChain);
     if (SUCCEEDED(result)) {
-        m_currentSwapChain = new DXGISwapChainWrapper(pDevice, swapChain, m_D2DFactory);
-        *ppSwapChain = m_currentSwapChain;
-        return result;
+        CComPtr<ID3D11Device> device;
+        if (SUCCEEDED(pDevice->QueryInterface(&device))) {
+            CComPtr<ID3D11DeviceContext> context;
+            device->GetImmediateContext(&context);
+            std::unique_ptr<ImguiHandler> imguiHandler(new ImguiHandler(hWnd, device, context));
+            AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Created Imgui");
+            m_currentSwapChain = new DXGISwapChainWrapper(std::move(imguiHandler), swapChain);
+            *ppSwapChain = m_currentSwapChain;
+            return result;
+        } else {
+            AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Failed to cast pDevice to ID3D11Device");
+        }
     }
 
     *ppSwapChain = nullptr;
-    return result;
+    return E_FAIL;
 }
 
 HRESULT __stdcall DXGIFactoryWrapper::SetPrivateData(REFGUID Name, UINT DataSize, const void* pData) {

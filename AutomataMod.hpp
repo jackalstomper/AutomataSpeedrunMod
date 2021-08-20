@@ -1,6 +1,5 @@
 #pragma once
 
-#include "FactoryWrapper.hpp"
 #include "InventoryManager.hpp"
 #include "ChipManager.hpp"
 #include "Util.hpp"
@@ -37,7 +36,7 @@ class ModChecker {
 public:
     ModChecker(uint64_t processRamStart);
 
-    void checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper);
+    void checkStuff();
 };
 
 } // namespace AutomataMod

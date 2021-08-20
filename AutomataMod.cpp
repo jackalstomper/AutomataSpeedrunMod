@@ -40,7 +40,7 @@ ModChecker::ModChecker(uint64_t processRamStart) :
     m_tauntChipsAdded = false;
 }
 
-void ModChecker::checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper)
+void ModChecker::checkStuff()
 {
     if (*m_isWorldLoaded == 1 && *m_playerNameSet == 1) {
         Vector3f* playerLocation = reinterpret_cast<Vector3f*>(m_playerLocationPtr);
@@ -65,16 +65,6 @@ void ModChecker::checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapp
             m_tauntChipsAdded = false;
             m_fishAdded = false;
         }
-    }
-
-    if (*m_isLoading) {
-        if (!m_dvdModeEnabled) {
-            factoryWrapper->toggleDvdMode(true);
-            m_dvdModeEnabled = true;
-        }
-    } else if (m_dvdModeEnabled) {
-        factoryWrapper->toggleDvdMode(false);
-        m_dvdModeEnabled = false;
     }
 }
 
