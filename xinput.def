@@ -1,3 +1,10 @@
-LIBRARY dinput8
+LIBRARY xinput1_4
 EXPORTS
-    DirectInput8Create @1
+    DllMain @1
+    XInputEnable @5
+    XInputGetAudioDeviceIds @10
+    XInputGetBatteryInformation @7
+    XInputGetCapabilities @4
+    XInputGetKeystroke @8
+    XInputGetState @2
+    XInputSetState @3

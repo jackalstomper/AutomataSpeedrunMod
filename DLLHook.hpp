@@ -8,7 +8,6 @@ class DLLHook {
     HMODULE m_module;
 
 public:
-    DLLHook() : m_module(NULL) {}
     DLLHook(const std::string& moduleName);
     ~DLLHook();
 
@@ -19,15 +18,15 @@ public:
             return nullptr;
         }
 
-        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Hooked " + funcName);
         FuncPtr func = (FuncPtr)GetProcAddress(m_module, funcName.c_str());
         if (!func) {
-            AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook " + funcName);
+            AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook " + funcName + " Error code: " + std::to_string(GetLastError()));
             return nullptr;
         }
 
+        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Hooked " + funcName);
         return func;
     }
 
-    operator HMODULE() const;
+    bool isModuleFound() const;
 };

@@ -20,6 +20,7 @@ DLLHook::DLLHook(const std::string& moduleName) {
 
     std::string filePath(buff.begin(), buff.begin() + len);
     filePath += "\\system32\\" + moduleName;
+    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Attempting to load " + filePath);
     m_module = LoadLibrary(filePath.c_str());
     if (m_module == NULL) {
         AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to load " + moduleName + " Error code: " + std::to_string(GetLastError()));
@@ -30,11 +31,12 @@ DLLHook::DLLHook(const std::string& moduleName) {
 
 DLLHook::~DLLHook() {
     if (m_module) {
+        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "DLLHook is dropping loaded DLL");
         FreeLibrary(m_module);
         m_module = NULL;
     }
 }
 
-DLLHook::operator HMODULE() const {
-    return m_module;
+bool DLLHook::isModuleFound() const {
+    return m_module != NULL;
 }

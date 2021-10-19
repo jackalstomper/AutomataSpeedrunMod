@@ -70,10 +70,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>dinput8</TargetName>
+    <TargetName>xinput1_4</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>dinput8</TargetName>
+    <TargetName>xinput1_4</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>xinput1_3</TargetName>
@@ -113,10 +113,10 @@
       <AdditionalDependencies>d2d1.lib;d3d11.lib;dwrite.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)x64\debug\dinput8.dll" "D:\Games\steam\steamapps\common\NieRAutomata\"</Command>
+      <Command>copy "$(ProjectDir)x64\debug\xinput1_4.dll" "D:\Games\steam\steamapps\common\NieRAutomata\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copying dinput8.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
+      <Message>Copying xinput1_4.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -158,8 +158,8 @@
       <AdditionalDependencies>d2d1.lib;d3d11.lib;dwrite.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)x64\release\dinput8.dll" "D:\Games\steam\steamapps\common\NieRAutomata\"</Command>
-      <Message>Copying dinput8.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
+      <Command>copy "$(ProjectDir)x64\release\xinput1_4.dll" "D:\Games\steam\steamapps\common\NieRAutomata\"</Command>
+      <Message>Copying xinput1_4.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

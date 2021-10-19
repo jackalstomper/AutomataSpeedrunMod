@@ -12,8 +12,7 @@
 
 namespace {
 
-DLLHook dinput;
-
+std::unique_ptr<DLLHook> xinput;
 std::unique_ptr<std::thread> checkerThread;
 std::unique_ptr<IAT::IATHook> d3dCreateDeviceHook;
 std::unique_ptr<IAT::IATHook> dxgiCreateFactoryHook;
@@ -69,7 +68,7 @@ HRESULT WINAPI D3D11CreateDeviceHooked(
 }
 
 void init() {
-    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Initializing AutomataMod v1.7");
+    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Initializing AutomataMod v1.8");
     uint64_t processRamStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Process ram start: " + std::to_string(processRamStartAddr));
     modChecker = std::unique_ptr<AutomataMod::ModChecker>(new AutomataMod::ModChecker(processRamStartAddr));
@@ -83,14 +82,15 @@ void init() {
 
 template<typename FuncPtr>
 FuncPtr hookFunc(const std::string& funcName) {
-    if (!dinput) {
-        dinput = DLLHook("dinput8.dll");
-        if (!dinput) {
+    if (!xinput) {
+        xinput = std::unique_ptr<DLLHook>(new DLLHook("xinput1_4.dll"));
+        if (!xinput->isModuleFound()) {
+            AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to load xinput1_4.dll. VC3 Mod and Automata will probably crash now.");
             return nullptr;
         }
     }
 
-    return dinput.hookFunc<FuncPtr>(funcName);
+    return xinput->hookFunc<FuncPtr>(funcName);
 }
 
 } // namespace
@@ -125,9 +125,74 @@ extern "C" {
         return TRUE;
     }
 
-    HRESULT WINAPI DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter) {
-        auto ptr = hookFunc<HRESULT(WINAPI*)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN)>("DirectInput8Create");
-        if (!ptr) return E_FAIL;
-        return ptr(hinst, dwVersion, riidltf, ppvOut, punkOuter);
+    void WINAPI XInputEnable(BOOL enable) {
+        static auto ptr = hookFunc<void(WINAPI*)(BOOL)>("XInputEnable");
+        if (!ptr) return;
+        ptr(enable);
+    }
+
+    DWORD WINAPI XInputGetAudioDeviceIds(
+        DWORD  dwUserIndex,
+        LPWSTR pRenderDeviceId,
+        UINT* pRenderCount,
+        LPWSTR pCaptureDeviceId,
+        UINT* pCaptureCount
+    ) {
+        static auto ptr = hookFunc<DWORD(WINAPI*)(DWORD, LPWSTR, UINT*, LPWSTR, UINT*)>("XInputGetAudioDeviceIds");
+        if (!ptr) return ERROR_DEVICE_NOT_CONNECTED;
+        return ptr(dwUserIndex, pRenderDeviceId, pRenderCount, pCaptureDeviceId, pCaptureCount);
+    }
+
+    struct XINPUT_BATTERY_INFORMATION;
+    DWORD WINAPI XInputGetBatteryInformation(
+        DWORD                      dwUserIndex,
+        BYTE                       devType,
+        XINPUT_BATTERY_INFORMATION* pBatteryInformation
+    ) {
+        static auto ptr = hookFunc<DWORD(WINAPI*)(DWORD, BYTE, XINPUT_BATTERY_INFORMATION*)>("XInputGetBatteryInformation");
+        if (!ptr) return ERROR_DEVICE_NOT_CONNECTED;
+        return ptr(dwUserIndex, devType, pBatteryInformation);
+    }
+
+    struct XINPUT_CAPABILITIES;
+    DWORD WINAPI XInputGetCapabilities(
+        DWORD               dwUserIndex,
+        DWORD               dwFlags,
+        XINPUT_CAPABILITIES* pCapabilities
+    ) {
+        static auto ptr = hookFunc<DWORD(WINAPI*)(DWORD, DWORD, XINPUT_CAPABILITIES*)>("XInputGetCapabilities");
+        if (!ptr) return ERROR_DEVICE_NOT_CONNECTED;
+        return ptr(dwUserIndex, dwFlags, pCapabilities);
+    }
+
+    struct XINPUT_KEYSTROKE;
+    DWORD WINAPI XInputGetKeystroke(
+        DWORD             dwUserIndex,
+        DWORD             dwReserved,
+        XINPUT_KEYSTROKE* pKeystroke
+    ) {
+        static auto ptr = hookFunc<DWORD(WINAPI*)(DWORD, DWORD, XINPUT_KEYSTROKE*)>("XInputGetKeystroke");
+        if (!ptr) return ERROR_DEVICE_NOT_CONNECTED;
+        return ptr(dwUserIndex, dwReserved, pKeystroke);
+    }
+
+    struct XINPUT_STATE;
+    DWORD WINAPI XInputGetState(
+        DWORD        dwUserIndex,
+        XINPUT_STATE* pState
+    ) {
+        static auto ptr = hookFunc<DWORD(WINAPI*)(DWORD, XINPUT_STATE*)>("XInputGetState");
+        if (!ptr) return ERROR_DEVICE_NOT_CONNECTED;
+        return ptr(dwUserIndex, pState);
+    }
+
+    struct XINPUT_VIBRATION;
+    DWORD WINAPI XInputSetState(
+        DWORD            dwUserIndex,
+        XINPUT_VIBRATION* pVibration
+    ) {
+        static auto ptr = hookFunc<DWORD(WINAPI*)(DWORD, XINPUT_VIBRATION*)>("XInputSetState");
+        if (!ptr) return ERROR_DEVICE_NOT_CONNECTED;
+        return ptr(dwUserIndex, pVibration);
     }
 }
