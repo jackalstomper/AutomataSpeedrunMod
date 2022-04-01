@@ -7,7 +7,6 @@
 namespace DxWrappers {
 
 DXGIFactoryWrapper::DXGIFactoryWrapper(CComPtr<IDXGIFactory2> target) {
-    m_refCount = 1;
     m_target = target;
 
     D2D1_FACTORY_OPTIONS opt = { D2D1_DEBUG_LEVEL_ERROR };
@@ -34,21 +33,16 @@ HRESULT __stdcall DXGIFactoryWrapper::QueryInterface(REFIID riid, void** ppvObje
 }
 
 ULONG __stdcall DXGIFactoryWrapper::AddRef() {
-    ++m_refCount;
-    return m_refCount;
+    return m_refCounter.incrementRef();
 }
 
 ULONG __stdcall DXGIFactoryWrapper::Release() {
-    if (m_refCount > 0) {
-        --m_refCount;
-    }
-
-    if (m_refCount == 0) {
-        m_D2DFactory = nullptr;
-        m_currentSwapChain = nullptr;
-    }
-
-    return m_refCount;
+    return m_refCounter.decrementRef([this](ULONG refCount) {
+        if (refCount == 0) {
+            m_D2DFactory = nullptr;
+            m_currentSwapChain = nullptr;
+        }
+    });
 }
 
 HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForHwnd(IUnknown* pDevice, HWND hWnd, const DXGI_SWAP_CHAIN_DESC1* pDesc, const DXGI_SWAP_CHAIN_FULLSCREEN_DESC* pFullscreenDesc, IDXGIOutput* pRestrictToOutput, IDXGISwapChain1** ppSwapChain) {

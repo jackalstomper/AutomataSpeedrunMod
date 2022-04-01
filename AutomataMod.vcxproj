@@ -28,26 +28,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -104,6 +104,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>AUTOMATA_LOG;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
@@ -149,6 +150,7 @@
       <PreprocessorDefinitions>AUTOMATA_RELEASE_TARGET;AUTOMATA_LOG;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>None</DebugInformationFormat>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -167,10 +169,13 @@
     <ClCompile Include="DLLHook.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FactoryWrapper.cpp" />
+    <ClCompile Include="fmt\src\format.cc" />
     <ClCompile Include="iat.cpp" />
     <ClCompile Include="InventoryManager.cpp" />
     <ClCompile Include="AutomataMod.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="ModConfig.cpp" />
+    <ClCompile Include="RefCounter.cpp" />
     <ClCompile Include="SwapChainWrapper.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
@@ -182,10 +187,12 @@
     <ClInclude Include="ChipManager.hpp" />
     <ClInclude Include="DLLHook.hpp" />
     <ClInclude Include="FactoryWrapper.hpp" />
+    <ClInclude Include="ModConfig.hpp" />
     <ClInclude Include="iat.hpp" />
     <ClInclude Include="InventoryManager.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="PointerIterator.hpp" />
+    <ClInclude Include="RefCounter.hpp" />
     <ClInclude Include="SwapChainWrapper.hpp" />
     <ClInclude Include="Util.hpp" />
   </ItemGroup>

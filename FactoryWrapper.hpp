@@ -5,11 +5,12 @@
 #include <dxgi1_2.h>
 #include <atlbase.h>
 #include "SwapChainWrapper.hpp"
+#include "RefCounter.hpp"
 
 namespace DxWrappers {
 
 class DXGIFactoryWrapper : public IDXGIFactory2 {
-    ULONG m_refCount;
+    RefCounter m_refCounter;
     CComPtr<IDXGIFactory2> m_target;
     CComPtr<ID2D1Factory2> m_D2DFactory;
     CComPtr<DXGISwapChainWrapper> m_currentSwapChain;

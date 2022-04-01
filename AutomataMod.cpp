@@ -6,33 +6,20 @@
 #include "Log.hpp"
 #include "Util.hpp"
 
-namespace {
-
-// Addresses are offsets in bytes relevant to processRamStart
-const uint64_t CURRENT_PHASE_ADDR = 0xF64B10;
-const uint64_t IS_WORLD_LOADED_ADDR = 0xF6E240;
-const uint64_t PLAYER_SET_NAME_ADDR = 0x124DE4C;
-const uint64_t IS_LOADING_ADDR = 0x100D410;
-const uint64_t ITEM_TABLE_START_ADDR = 0x148C4C4;
-const uint64_t CHIP_TABLE_START_ADDR = 0x148E410;
-const uint64_t PLAYER_LOCATION_ADDR = 0x12553E0;
-const uint64_t UNIT_DATA_START_ADDR = 0x14944C8;
-
-} // namespace
-
 namespace AutomataMod {
 
-ModChecker::ModChecker(uint64_t processRamStart) :
-    m_inventoryManager(processRamStart + ITEM_TABLE_START_ADDR),
-    m_chipManager(processRamStart + CHIP_TABLE_START_ADDR),
+ModChecker::ModChecker(uint64_t processRamStart, ModConfig&& modConfig) :
+    m_modConfig(std::move(modConfig)),
+    m_inventoryManager(processRamStart + modConfig.getAddresses().itemTableStart),
+    m_chipManager(processRamStart + modConfig.getAddresses().chipTableStart),
     m_mackerelVolume(Volume(Vector3f(324.f, -100.f, 717.f), 293.f, 50.f, 253.f))
 {
-    m_currentPhase = reinterpret_cast<char*>(processRamStart + CURRENT_PHASE_ADDR);
-    m_playerNameSet = reinterpret_cast<uint32_t*>(processRamStart + PLAYER_SET_NAME_ADDR);
-    m_isWorldLoaded = reinterpret_cast<uint32_t*>(processRamStart + IS_WORLD_LOADED_ADDR);
-    m_isLoading = reinterpret_cast<uint32_t*>(processRamStart + IS_LOADING_ADDR);
-    m_playerLocationPtr = reinterpret_cast<uint64_t*>(processRamStart + PLAYER_LOCATION_ADDR);
-    m_unitDataFlags = reinterpret_cast<uint8_t*>(processRamStart + UNIT_DATA_START_ADDR);
+    m_currentPhase = reinterpret_cast<char*>(processRamStart + modConfig.getAddresses().currentPhase);
+    m_playerNameSet = reinterpret_cast<uint32_t*>(processRamStart + modConfig.getAddresses().playerSetName);
+    m_isWorldLoaded = reinterpret_cast<uint32_t*>(processRamStart + modConfig.getAddresses().isWorldLoaded);
+    m_isLoading = reinterpret_cast<uint32_t*>(processRamStart + modConfig.getAddresses().isLoading);
+    m_playerLocationPtr = reinterpret_cast<uint64_t*>(processRamStart + modConfig.getAddresses().playerLocation);
+    m_unitDataFlags = reinterpret_cast<uint8_t*>(processRamStart + modConfig.getAddresses().unitData);
 
     m_inventoryModded = false;
     m_fishAdded = false;

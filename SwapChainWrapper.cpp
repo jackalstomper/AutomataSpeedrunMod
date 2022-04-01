@@ -126,7 +126,6 @@ void DXGISwapChainWrapper::renderWatermark() {
 }
 
 DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapChain1> target, CComPtr<ID2D1Factory2> d2dFactory) {
-    m_refCount = 1;
     m_target = target;
     m_dvdMode = false;
     
@@ -189,22 +188,17 @@ HRESULT __stdcall DXGISwapChainWrapper::QueryInterface(REFIID riid, void** ppvOb
 }
 
 ULONG __stdcall DXGISwapChainWrapper::AddRef() {
-    ++m_refCount;
-    return m_refCount;
+    return m_refCounter.incrementRef();
 }
 
 ULONG __stdcall DXGISwapChainWrapper::Release() {
-    if (m_refCount > 0) {
-        --m_refCount;
-    }
-
-    if (m_refCount == 0) {
-        m_brush = nullptr;
-        m_shadowBrush = nullptr;
-        m_textFormat = nullptr;
-    }
-
-    return m_refCount;
+    return m_refCounter.decrementRef([this](ULONG refCount) {
+        if (refCount == 0) {
+            m_brush = nullptr;
+            m_shadowBrush = nullptr;
+            m_textFormat = nullptr;
+        }
+    });
 }
 
 HRESULT __stdcall DXGISwapChainWrapper::SetPrivateData(REFGUID Name, UINT DataSize, const void* pData) {

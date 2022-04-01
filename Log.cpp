@@ -92,8 +92,10 @@ void log(LogLevel level, const char* message)
 
     if (level == LogLevel::LOG_ERROR) {
         logFile << "[ERROR] ";
-    } else {
+    } else if (level == LogLevel::LOG_INFO)  {
         logFile << "[INFO] ";
+    } else {
+        logFile << "[DEBUG] ";
     }
 
     logFile << message << std::endl;

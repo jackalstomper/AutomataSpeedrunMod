@@ -5,6 +5,7 @@
 #include <dxgi1_2.h>
 #include <atlbase.h>
 #include <chrono>
+#include "RefCounter.hpp"
 
 namespace DxWrappers {
 
@@ -15,7 +16,7 @@ class DXGISwapChainWrapper : public IDXGISwapChain1 {
     static const D2D1::ColorF SHADOW_COLOR;
     static const D2D1_BITMAP_PROPERTIES1 BITMAP_PROPERTIES;
 
-    ULONG m_refCount;
+    RefCounter m_refCounter;
     CComPtr<IDXGISwapChain1> m_target;
     CComPtr<ID2D1DeviceContext> m_deviceContext;
     CComPtr<ID2D1Device> m_D2DDevice;

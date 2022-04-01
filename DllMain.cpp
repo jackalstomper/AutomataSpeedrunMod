@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <Psapi.h>
 #include <thread>
 #include <vector>
 #include <d3d11.h>
@@ -9,6 +10,7 @@
 #include "iat.hpp"
 #include "FactoryWrapper.hpp"
 #include "DLLHook.hpp"
+#include "ModConfig.hpp"
 
 namespace {
 
@@ -19,6 +21,12 @@ std::unique_ptr<IAT::IATHook> dxgiCreateFactoryHook;
 std::unique_ptr<AutomataMod::ModChecker> modChecker;
 CComPtr<DxWrappers::DXGIFactoryWrapper> wrapper;
 bool shouldStopChecker = false;
+
+uint64_t getModuleSize() {
+    MODULEINFO info;
+    BOOL result = GetModuleInformation(GetCurrentProcess(), GetModuleHandle(nullptr), &info, sizeof(info));
+    return info.SizeOfImage;
+}
 
 // Need to intercept the DXGI factory to return our wrapper of it
 HRESULT WINAPI CreateDXGIFactoryHooked(REFIID riid, void** ppFactory) {
@@ -71,7 +79,28 @@ void init() {
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Initializing AutomataMod v1.8");
     uint64_t processRamStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Process ram start: " + std::to_string(processRamStartAddr));
-    modChecker = std::unique_ptr<AutomataMod::ModChecker>(new AutomataMod::ModChecker(processRamStartAddr));
+
+    AutomataMod::ModConfig modConfig;
+    uint64_t moduleSize = getModuleSize();
+    if (moduleSize == 26177536) {
+        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Detected Automata version 1.02");
+        AutomataMod::ModConfig::Addresses addresses;
+        addresses.currentPhase = 0xF64B10;
+        addresses.isWorldLoaded = 0xF6E240;
+        addresses.playerSetName = 0x124DE4C;
+        addresses.isLoading = 0x100D410;
+        addresses.itemTableStart = 0x148C4C4;
+        addresses.chipTableStart = 0x148E410;
+        addresses.playerLocation = 0x12553E0;
+        addresses.unitData = 0x14944C8;
+        modConfig.setAddresses(std::move(addresses));
+    } else {
+        AutomataMod::logEx(AutomataMod::LogLevel::LOG_ERROR, "Could not determine what automata version we are. VC3Mod will not boot. moduleSize: {}", moduleSize);
+        return;
+    }
+
+    modChecker = std::unique_ptr<AutomataMod::ModChecker>(new AutomataMod::ModChecker(processRamStartAddr, std::move(modConfig)));
+
     checkerThread = std::unique_ptr<std::thread>(new std::thread([processRamStartAddr]() {
         while (!shouldStopChecker) {
             modChecker->checkStuff(wrapper);

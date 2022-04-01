@@ -4,11 +4,13 @@
 #include "InventoryManager.hpp"
 #include "ChipManager.hpp"
 #include "Util.hpp"
+#include "ModConfig.hpp"
 #include <cstdint>
 
 namespace AutomataMod {
 
 class ModChecker {
+    ModConfig m_modConfig;
     InventoryManager m_inventoryManager;
     ChipManager m_chipManager;
     Volume m_mackerelVolume;
@@ -35,7 +37,7 @@ class ModChecker {
     bool adjustFishInventory(bool shouldDeleteFish);
 
 public:
-    ModChecker(uint64_t processRamStart);
+    ModChecker(uint64_t processRamStart, ModConfig&& modConfig);
 
     void checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper);
 };
