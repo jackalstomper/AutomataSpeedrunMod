@@ -113,13 +113,48 @@ void DXGISwapChainWrapper::renderWatermark() {
     m_deviceContext->BeginDraw();
     m_deviceContext->SetTransform(root);
 
+#if FPS_FRAMES > 0
+    //calculate FPS
+    //original code counted frametime ms in an integer array, changed to float for precision
+    static float    previousTimes[FPS_FRAMES] = { 0 };
+    static int      index = 0;
+    float total = 0, fps;
+    int i;
+
+    auto frameTime = now - m_lastFrame;
+    float msec = frameTime.count() * 0.00001f; //alright this precision needs to calm down now...
+    previousTimes[index % FPS_FRAMES] = msec;
+    index++;
+
+    //go over our array and average things out
+    for (i = 0; i < FPS_FRAMES; i++) {
+        total += previousTimes[i];
+    }
+    if (total < 1) total = 1;
+    //fps = 1000 * FPS_FRAMES / total;
+    fps = 10000 * FPS_FRAMES / total;
+
+
+    //format text.. this is kinda ugly and should be redone (why is VC3_NAME a static class member??)
+    WCHAR wbuf[256] = { 0 };
+    swprintf_s(wbuf, L"%ls %.1fFPS %.2fms", VC3_NAME, (float)fps, (float)msec * 0.1f);
+#endif
+
     // Draw shadow behind our text
     m_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, 2));
+#if FPS_FRAMES > 0
+    m_deviceContext->DrawText(wbuf, (UINT)wcslen(wbuf), m_textFormat, rect, m_shadowBrush);
+#else
     m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_shadowBrush);
+#endif
     m_deviceContext->SetTransform(root);
 
     // Draw main text
+#if FPS_FRAMES > 0
+    m_deviceContext->DrawText(wbuf, (UINT)wcslen(wbuf), m_textFormat, rect, m_brush);
+#else
     m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_brush);
+#endif
     m_deviceContext->EndDraw();
     m_deviceContext->SetTarget(oldTarget);
     m_lastFrame = now;
