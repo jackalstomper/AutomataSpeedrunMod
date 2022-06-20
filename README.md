@@ -1,7 +1,6 @@
 ## Automata Speedrun Mod
 
-Mod that aims to make the NieR: Automata speedrun more tolerable.
-
+Mod that aims to make the NieR: Automata speedrun more tolerable.  
 As of now all it does is give VC3 mats after adam pit.
 
 ### Installation
@@ -10,28 +9,24 @@ As of now all it does is give VC3 mats after adam pit.
 - Unzip `AutomataMod.zip`
 - Place xinput1_4.dll in the same directory as `NieRAutomata.exe`
 
-Done! The mod should add VC3 mats after you beat Adam 1 bossfight
-
+Done! The mod should add VC3 mats after you beat Adam 1 bossfight.  
 Note that right now the mod only adds the materials **if you started from a new game!**
 
 ### How does it work?
 
-The mod uses a _proxy DLL_ of the official Windows DLL `xinput1_4.dll` which gives the mod access to Automata's process memory to modify as it pleases.
-
+The mod uses a _proxy DLL_ of the official Windows DLL `xinput1_4.dll` which gives the mod access to Automata's process memory to modify as it pleases.  
 The mod still forwards the actual xinput methods to the real windows DLL. The mod just abuses the fact automata loads this DLL to get it's code running first.
 
 ### The mod broke!
 
-The mod should show an error box with some details on what went wrong for unrecoverable errors.
-
+The mod should show an error box with some details on what went wrong for unrecoverable errors.  
 There should also be a logfile that the mod generates in your users AppData directory. Example path:
 
 ```
 C:\Users\<username>\AppData\Roaming\.automataMod\automataMod.log
 ```
 
-This directory can be accessed quickly by opening the `Run` window (Winkey + R) and typing in `%appdata%`
-
+This directory can be accessed quickly by opening the `Run` window (Winkey + R) and typing in `%appdata%`.  
 Note that this log is reset every time you boot the game! If you want to share this log to help with troubleshooting make sure to save it before rebooting your game again.
 
 Example of a log with the mod functioning as normal
@@ -54,6 +49,14 @@ Example of a log with the mod functioning as normal
 2019-06-13 15:36:47 [INFO] Current Severed Cables: 3
 2019-06-13 15:36:47 [INFO] Done adding inventory.
 ```
+
+### Building (for developers)
+
+The mod has a Visual Studio solution and project file to compile with.
+
+The project has a dependency on the string formatting library [fmt](https://github.com/fmtlib/fmt) that is included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules).  
+The dependency can be added when initially cloning the repository with `git clone --recurse-submodules`.  
+If the repo has already been cloned then the submodule can be downloaded with `git submodule update --init --recursive`.
 
 ### Contributors
 
