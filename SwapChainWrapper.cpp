@@ -2,22 +2,32 @@
 #include "Log.hpp"
 #include <cmath>
 #include <random>
+#include <fmt/format.h>
+#include <fmt/xchar.h>
+
+namespace {
+
+const WCHAR* VC3_NAME = L"VC3Mod 1.9";
+const UINT VC3_LEN = (UINT)wcslen(VC3_NAME);
+
+const float SCREEN_WIDTH = 1600.f;
+const float SCREEN_HEIGHT = 900.f;
+const float WATERMARK_TEXT_SIZE = 15.25f;
+
+const D2D1::ColorF WATERMARK_COLOR = D2D1::ColorF(0.803f, 0.784f, 0.690f, 1.f);
+const D2D1::ColorF SHADOW_COLOR = D2D1::ColorF(0.f, 0.f, 0.f, 0.3f);
+
+const D2D1_BITMAP_PROPERTIES1 BITMAP_PROPERTIES = {
+    { DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED },
+    96.f,
+    96.f,
+    D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+    nullptr
+};
+
+} // Anonymous namespace
 
 namespace DxWrappers {
-
-const WCHAR* DXGISwapChainWrapper::VC3_NAME = L"VC3Mod 1.8";
-const UINT DXGISwapChainWrapper::VC3_LEN = (UINT)wcslen(VC3_NAME);
-
-const D2D1::ColorF DXGISwapChainWrapper::WATERMARK_COLOR = D2D1::ColorF(0.803f, 0.784f, 0.690f, 1.f);
-const D2D1::ColorF DXGISwapChainWrapper::SHADOW_COLOR = D2D1::ColorF(0.f, 0.f, 0.f, 0.3f);
-
-const D2D1_BITMAP_PROPERTIES1 DXGISwapChainWrapper::BITMAP_PROPERTIES = {
-       { DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED },
-       96.f,
-       96.f,
-       D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-       nullptr
-};
 
 void DXGISwapChainWrapper::rotateVelocity() {
     static std::random_device rd;
@@ -28,6 +38,22 @@ void DXGISwapChainWrapper::rotateVelocity() {
     const FLOAT angle = dist(eng);
     m_velocity.x = m_velocity.x * std::cos(angle) - m_velocity.y * std::sin(angle);
     m_velocity.y = m_velocity.x * std::sin(angle) - m_velocity.y * std::cos(angle);
+}
+
+std::wstring DXGISwapChainWrapper::calculateFps(float frameDelta) {
+    m_frameTimes[m_frameTimeIndex % m_frameTimes.size()] = frameDelta;
+    ++m_frameTimeIndex;
+
+    // Get average FPS
+    float total = 0.f;
+    for (float f : m_frameTimes)
+        total += f;
+
+    if (total < 1.f)
+        total = 1.f;
+
+    float fps = 1000 * m_frameTimes.size() / total;
+    return fmt::format(L"{:.1f}FPS {:.2f}ms", fps, frameDelta);
 }
 
 void DXGISwapChainWrapper::resetLocation(D2D1_SIZE_F& screenSize) {
@@ -43,6 +69,7 @@ void DXGISwapChainWrapper::renderWatermark() {
 
     static const D2D1::Matrix3x2F root = D2D1::Matrix3x2F::Identity();
     std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> frameDelta = now - m_lastFrame;
 
     CComPtr<IDXGISurface> dxgiBackBuffer;
     m_target->GetBuffer(0, __uuidof(IDXGISurface), (void**)&dxgiBackBuffer);
@@ -61,6 +88,10 @@ void DXGISwapChainWrapper::renderWatermark() {
         resetLocation(screenSize);
     }
 
+    float xscale = screenSize.width * (1.f / SCREEN_WIDTH);
+    float yscale = screenSize.height * (1.f / SCREEN_HEIGHT);
+    float heightScale = 15.25 * yscale;
+
     if (!m_textFormat) {
         CComPtr<IDWriteFactory> dwFactory;
         DWriteCreateFactory(DWRITE_FACTORY_TYPE_ISOLATED, __uuidof(IDWriteFactory), (IUnknown**)&dwFactory);
@@ -70,7 +101,7 @@ void DXGISwapChainWrapper::renderWatermark() {
             DWRITE_FONT_WEIGHT_MEDIUM,
             DWRITE_FONT_STYLE_NORMAL,
             DWRITE_FONT_STRETCH_NORMAL,
-            screenSize.height * 0.02f,
+            heightScale,
             L"en-us",
             &m_textFormat
         );
@@ -82,17 +113,17 @@ void DXGISwapChainWrapper::renderWatermark() {
     }
 
     FLOAT textHeight = m_textFormat->GetFontSize();
+    FLOAT rectHeight = textHeight * 2; // * 2 for two lines, the mod name and the FPS count
 
     if (m_dvdMode) {
         // bounce off edges of screen
         if (m_location.x <= 0.f || (m_location.x + 120.f) >= screenSize.width)
             m_velocity.x *= -1.f;
 
-        if (m_location.y <= 0.f || (m_location.y + textHeight) >= screenSize.height)
+        if (m_location.y <= 0.f || (m_location.y + rectHeight) >= screenSize.height)
             m_velocity.y *= -1.f;
 
-        std::chrono::duration<float> diff = now - m_lastFrame;
-        FLOAT deltaTime = diff.count();
+        FLOAT deltaTime = frameDelta.count();
         m_location.x += m_velocity.x * deltaTime;
         m_location.y += m_velocity.y * deltaTime;
 
@@ -101,11 +132,11 @@ void DXGISwapChainWrapper::renderWatermark() {
         if (m_location.x <= 0.f || (m_location.x + 120.f) >= screenSize.width)
             m_location.x = std::fmax(std::fmin(m_location.x, screenSize.width - 120.f), 0.f);
 
-        if (m_location.y <= 0.f || (m_location.y + textHeight) >= screenSize.height)
-            m_location.y = std::fmax(std::fmin(m_location.y, screenSize.height - textHeight), 0.f);
+        if (m_location.y <= 0.f || (m_location.y + rectHeight) >= screenSize.height)
+            m_location.y = std::fmax(std::fmin(m_location.y, screenSize.height - rectHeight), 0.f);
     }
 
-    D2D1_RECT_F rect = { m_location.x, m_location.y, m_location.x + 150.f, m_location.y + textHeight };
+    D2D1_RECT_F rect = {m_location.x, m_location.y, m_location.x + 150.f * xscale, m_location.y + rectHeight};
 
     CComPtr<ID2D1Image> oldTarget;
     m_deviceContext->GetTarget(&oldTarget);
@@ -120,6 +151,19 @@ void DXGISwapChainWrapper::renderWatermark() {
 
     // Draw main text
     m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_brush);
+
+    std::chrono::duration<float, std::milli> frameDeltaMilli = now - m_lastFrame;
+    std::wstring fpsString = calculateFps(frameDeltaMilli.count());
+
+    // Draw FPS Shadow
+    m_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, textHeight + 2));
+    m_deviceContext->DrawText(fpsString.c_str(), fpsString.length(), m_textFormat, rect, m_shadowBrush);
+    m_deviceContext->SetTransform(root);
+
+    // Draw FPS Counter
+    m_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(0, textHeight));
+    m_deviceContext->DrawText(fpsString.c_str(), fpsString.length(), m_textFormat, rect, m_brush);
+
     m_deviceContext->EndDraw();
     m_deviceContext->SetTarget(oldTarget);
     m_lastFrame = now;
@@ -243,6 +287,7 @@ HRESULT __stdcall DXGISwapChainWrapper::GetDesc(DXGI_SWAP_CHAIN_DESC* pDesc) {
 }
 
 HRESULT __stdcall DXGISwapChainWrapper::ResizeBuffers(UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags) {
+    m_textFormat = nullptr; // Trigger a text format refresh
     return m_target->ResizeBuffers(BufferCount, Width, Height, NewFormat, SwapChainFlags);
 }
 

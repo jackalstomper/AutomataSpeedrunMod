@@ -5,17 +5,12 @@
 #include <dxgi1_2.h>
 #include <atlbase.h>
 #include <chrono>
+#include <array>
 #include "RefCounter.hpp"
 
 namespace DxWrappers {
 
 class DXGISwapChainWrapper : public IDXGISwapChain1 {
-    static const WCHAR* VC3_NAME;
-    static const UINT VC3_LEN;
-    static const D2D1::ColorF WATERMARK_COLOR;
-    static const D2D1::ColorF SHADOW_COLOR;
-    static const D2D1_BITMAP_PROPERTIES1 BITMAP_PROPERTIES;
-
     RefCounter m_refCounter;
     CComPtr<IDXGISwapChain1> m_target;
     CComPtr<ID2D1DeviceContext> m_deviceContext;
@@ -29,6 +24,10 @@ class DXGISwapChainWrapper : public IDXGISwapChain1 {
     D2D1_VECTOR_2F m_velocity;
     std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame;
 
+    // FPS Display
+    std::array<float, 16> m_frameTimes;
+    size_t m_frameTimeIndex;
+
     void renderWatermark();
 
     // Roates velocity in a random direction
@@ -36,6 +35,10 @@ class DXGISwapChainWrapper : public IDXGISwapChain1 {
 
     // Resets location to the default position
     void resetLocation(D2D1_SIZE_F& screenSize);
+
+    // Calculates current frame rate and returns formatted FPS display string
+    // frameDelta must be in milliseconds
+    std::wstring calculateFps(float frameDelta);
 
 public:
     DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapChain1> target, CComPtr<ID2D1Factory2> d2dFactory);
