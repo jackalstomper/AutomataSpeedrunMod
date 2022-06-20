@@ -36,6 +36,7 @@ void DXGISwapChainWrapper::resetLocation(D2D1_SIZE_F& screenSize) {
     m_velocity = { 0.f, 200.f };
 }
 
+#define FPS_FRAMES 62 //16 //how many frames used to approximate FPS, comment to disable feature completely.
 //these r the screen dimensions we will normalize to..
 #define SCREEN_WIDTH 1600 //1920
 #define SCREEN_HEIGHT 900 //1080
@@ -133,7 +134,6 @@ void DXGISwapChainWrapper::renderWatermark() {
     m_deviceContext->BeginDraw();
     m_deviceContext->SetTransform(root);
 
-#if FPS_FRAMES > 0
     //calculate FPS
     //original code counted frametime ms in an integer array, changed to float for precision
     static float    previousTimes[FPS_FRAMES] = { 0 };
@@ -159,23 +159,14 @@ void DXGISwapChainWrapper::renderWatermark() {
     WCHAR wbuf[256] = { 0 };
     swprintf_s(wbuf, L"%ls %.1fFPS %.2fms", VC3_NAME, (float)fps, (float)msec * 0.1f);
     //swprintf_s(wbuf, L"%ls %.1fFPS %.2fms %.0fx%.0f yscale: %f", VC3_NAME, (float)fps, (float)msec * 0.1f, screenSize.width, screenSize.height, yscale);
-#endif
 
     // Draw shadow behind our text
     m_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, 2));
-#if FPS_FRAMES > 0
     m_deviceContext->DrawText(wbuf, (UINT)wcslen(wbuf), m_textFormat, rect, m_shadowBrush);
-#else
-    m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_shadowBrush);
-#endif
     m_deviceContext->SetTransform(root);
 
     // Draw main text
-#if FPS_FRAMES > 0
     m_deviceContext->DrawText(wbuf, (UINT)wcslen(wbuf), m_textFormat, rect, m_brush);
-#else
-    m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_brush);
-#endif
     m_deviceContext->EndDraw();
     m_deviceContext->SetTarget(oldTarget);
     m_lastFrame = now;
