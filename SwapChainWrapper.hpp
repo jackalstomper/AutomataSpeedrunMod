@@ -6,7 +6,7 @@
 #include <atlbase.h>
 #include <chrono>
 
-#define FPS_FRAMES 16 //how many frames used to approximate FPS, comment to disable feature completely.
+#define FPS_FRAMES 62 //16 //how many frames used to approximate FPS, comment to disable feature completely.
 
 namespace DxWrappers {
 
