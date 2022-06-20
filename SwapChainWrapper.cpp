@@ -36,6 +36,12 @@ void DXGISwapChainWrapper::resetLocation(D2D1_SIZE_F& screenSize) {
     m_velocity = { 0.f, 200.f };
 }
 
+//these r the screen dimensions we will normalize to..
+#define SCREEN_WIDTH 1600 //1920
+#define SCREEN_HEIGHT 900 //1080
+//21.55 is an exact match on 1080p base res..?
+#define WATERMARK_TEXT_SIZE 15.25 //21.55f
+
 void DXGISwapChainWrapper::renderWatermark() {
     if (!m_brush || !m_shadowBrush) {
         return;
@@ -61,6 +67,20 @@ void DXGISwapChainWrapper::renderWatermark() {
         resetLocation(screenSize);
     }
 
+    float xscale = screenSize.width * (1.0f / SCREEN_WIDTH);
+    float yscale = screenSize.height * (1.0f / SCREEN_HEIGHT);
+    float heightScale = WATERMARK_TEXT_SIZE * yscale;
+    static float lastHeightScale = 1.0f;
+
+    if (lastHeightScale != heightScale) {
+        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Resolution changed, clearing text interface");
+        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO,
+            std::to_string(screenSize.width) + " " + std::to_string(screenSize.height) + " " + std::to_string(lastHeightScale) + " " + std::to_string(heightScale) + " " + std::to_string(yscale));
+        lastHeightScale = heightScale;
+        m_textFormat = nullptr; //idk if this is the right or if this leaks some memory when the resolution gets switched, but it's working for now
+
+    }
+
     if (!m_textFormat) {
         CComPtr<IDWriteFactory> dwFactory;
         DWriteCreateFactory(DWRITE_FACTORY_TYPE_ISOLATED, __uuidof(IDWriteFactory), (IUnknown**)&dwFactory);
@@ -70,7 +90,7 @@ void DXGISwapChainWrapper::renderWatermark() {
             DWRITE_FONT_WEIGHT_MEDIUM,
             DWRITE_FONT_STYLE_NORMAL,
             DWRITE_FONT_STRETCH_NORMAL,
-            screenSize.height * 0.02f,
+            heightScale,
             L"en-us",
             &m_textFormat
         );
@@ -105,7 +125,7 @@ void DXGISwapChainWrapper::renderWatermark() {
             m_location.y = std::fmax(std::fmin(m_location.y, screenSize.height - textHeight), 0.f);
     }
 
-    D2D1_RECT_F rect = { m_location.x, m_location.y, m_location.x + 150.f, m_location.y + textHeight };
+    D2D1_RECT_F rect = { m_location.x, m_location.y, m_location.x + 150.f * xscale, m_location.y + textHeight };
 
     CComPtr<ID2D1Image> oldTarget;
     m_deviceContext->GetTarget(&oldTarget);
@@ -138,6 +158,7 @@ void DXGISwapChainWrapper::renderWatermark() {
     //format text.. this is kinda ugly and should be redone (why is VC3_NAME a static class member??)
     WCHAR wbuf[256] = { 0 };
     swprintf_s(wbuf, L"%ls %.1fFPS %.2fms", VC3_NAME, (float)fps, (float)msec * 0.1f);
+    //swprintf_s(wbuf, L"%ls %.1fFPS %.2fms %.0fx%.0f yscale: %f", VC3_NAME, (float)fps, (float)msec * 0.1f, screenSize.width, screenSize.height, yscale);
 #endif
 
     // Draw shadow behind our text
