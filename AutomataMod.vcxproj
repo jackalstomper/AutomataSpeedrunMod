@@ -114,10 +114,12 @@
       <AdditionalDependencies>d2d1.lib;d3d11.lib;dwrite.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)x64\debug\xinput1_4.dll" "D:\Games\steam\steamapps\common\NieRAutomata\"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copying xinput1_4.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -160,8 +162,10 @@
       <AdditionalDependencies>d2d1.lib;d3d11.lib;dwrite.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)x64\release\xinput1_4.dll" "D:\Games\steam\steamapps\common\NieRAutomata\"</Command>
-      <Message>Copying xinput1_4.dll to D:\Games\steamapps\common\NieRAutomata\</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
