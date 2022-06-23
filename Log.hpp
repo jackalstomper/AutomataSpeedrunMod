@@ -18,14 +18,12 @@ enum struct LogLevel {
  * @param ...args Format string values
 */
 template<typename... T>
-void logEx(LogLevel level, fmt::format_string<T...> formatString, T&&... args) {
+void log(LogLevel level, fmt::format_string<T...> formatString, T&&... args) {
     std::string string = fmt::format(formatString, args...);
-    log(level, string);
+    log(level, string.c_str());
 }
 
 void log(LogLevel level, const char* message);
-void log(LogLevel level, const std::string& message);
-void log(LogLevel level, const std::wstring& message);
 
 // Should only be used for unrecoverable errors we want to notify the user about
 void showErrorBox(const char* message);

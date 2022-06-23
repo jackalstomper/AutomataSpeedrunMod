@@ -30,7 +30,7 @@ void IATHook::readImportDescriptor(IMAGE_IMPORT_DESCRIPTOR& importDescriptor, ui
                 m_originalFunction = m_thunkIAT->u1.Function;
                 m_thunkIAT->u1.Function = (ULONGLONG)replacementFunction;
                 VirtualProtect(&(m_thunkIAT->u1.Function), sizeof(ULONGLONG), oldPermissions, nullptr);
-                AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Successfully hooked " + std::string(functionName));
+                AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Successfully hooked {}", functionName);
                 return;
             }
         }
@@ -39,7 +39,7 @@ void IATHook::readImportDescriptor(IMAGE_IMPORT_DESCRIPTOR& importDescriptor, ui
         m_thunkIAT++;
     }
 
-    AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook function " + std::string(functionName));
+    AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook function {}", functionName);
 }
 
 void IATHook::parseImports(uint64_t baseAddress, const char* moduleName, const char* functionName, LPCVOID replacementFunction)
@@ -73,7 +73,7 @@ void IATHook::parseImports(uint64_t baseAddress, const char* moduleName, const c
         }
     }
 
-    AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook " + std::string(functionName) + " from module " + std::string(moduleName));
+    AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook {} from module {}", functionName, moduleName);
 }
 
 IATHook::IATHook(const char* moduleName, const char* functionName, LPCVOID replacementFunction) {

@@ -13,18 +13,18 @@ public:
 
     template<typename FuncPtr>
     FuncPtr hookFunc(const std::string& funcName) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Hooking " + funcName);
+        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Hooking {}", funcName);
         if (!m_module) {
             return nullptr;
         }
 
         FuncPtr func = (FuncPtr)GetProcAddress(m_module, funcName.c_str());
         if (!func) {
-            AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook " + funcName + " Error code: " + std::to_string(GetLastError()));
+            AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook {} Error code: {}", funcName, GetLastError());
             return nullptr;
         }
 
-        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Hooked " + funcName);
+        AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Hooked {}", funcName);
         return func;
     }
 

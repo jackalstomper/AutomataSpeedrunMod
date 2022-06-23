@@ -178,13 +178,13 @@ DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapC
     CComPtr<IDXGIDevice> pDXGIDevice;
     HRESULT queryResult = pDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice);
     if (!SUCCEEDED(queryResult)) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get DXGIDevice. Error code: " + std::to_string(queryResult));
+        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get DXGIDevice. Error code: {}", queryResult);
         return;
     }
 
     queryResult = d2dFactory->CreateDevice(pDXGIDevice, &m_D2DDevice);
     if (!SUCCEEDED(queryResult)) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateDevice. Error code: " + std::to_string(queryResult));
+        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateDevice. Error code: {}", queryResult);
         return;
     }
 
@@ -192,7 +192,7 @@ DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapC
 
     queryResult = m_D2DDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &m_deviceContext);
     if (!SUCCEEDED(queryResult)) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateDeviceContext. Error code: " + std::to_string(queryResult));
+        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateDeviceContext. Error code: {}", queryResult);
         return;
     }
 
@@ -200,13 +200,13 @@ DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown* pDevice, CComPtr<IDXGISwapC
 
     queryResult = m_deviceContext->CreateSolidColorBrush(WATERMARK_COLOR, &m_brush);
     if (!SUCCEEDED(queryResult)) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateSolidColorBrush. Error code: " + std::to_string(queryResult));
+        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateSolidColorBrush. Error code: {}", queryResult);
         return;
     }
 
     queryResult = m_deviceContext->CreateSolidColorBrush(SHADOW_COLOR, &m_shadowBrush);
     if (!SUCCEEDED(queryResult)) {
-        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateSolidColorBrush. Error code: " + std::to_string(queryResult));
+        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateSolidColorBrush. Error code: {}", queryResult);
         return;
     }
 }

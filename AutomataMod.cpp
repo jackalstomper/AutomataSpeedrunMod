@@ -75,7 +75,7 @@ bool ModChecker::adjustFishInventory(bool shouldDeleteFish)
             for (auto fish : fishies)
                 fish->reset();
         } else {
-            logEx(LogLevel::LOG_INFO, "Overriding fish with id {}", fishies[0]->itemId);
+            log(LogLevel::LOG_INFO, "Overriding fish with id {}", fishies[0]->itemId);
             fishies[0]->itemId = InventoryManager::FISH_MACKEREL_ID;
             log(LogLevel::LOG_INFO, "Done overwriting fish in inventory.");
             return true;
@@ -101,10 +101,10 @@ void ModChecker::addInventory(uint32_t itemId, uint32_t quantity)
 {
     InventoryManager::Iterator item = m_inventoryManager.getItemSlotById(itemId);
     if (item == m_inventoryManager.end()) {
-        logEx(LogLevel::LOG_INFO, "No items found. Adding {} items", quantity);
+        log(LogLevel::LOG_INFO, "No items found. Adding {} items", quantity);
         m_inventoryManager.addItem({ itemId, ~0u, quantity });
     } else {
-        logEx(LogLevel::LOG_INFO, "Found {} items. Adjusting count to {}", item->quantity, quantity);
+        log(LogLevel::LOG_INFO, "Found {} items. Adjusting count to {}", item->quantity, quantity);
         item->quantity = quantity;
     }
 }
@@ -130,7 +130,7 @@ void ModChecker::modifyChipInventory() {
         for (size_t i = 0; i < addCount; ++i)
             m_chipManager.addChip(newTauntChip);
 
-        logEx(LogLevel::LOG_INFO, "Added {} Taunt+2 chips.", addCount);
+        log(LogLevel::LOG_INFO, "Added {} Taunt+2 chips.", addCount);
     } else {
         log(LogLevel::LOG_INFO, "Player already has 2 Taunt+2 chips.");
     }

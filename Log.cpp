@@ -8,8 +8,8 @@
 #include <string>
 #include <ctime>
 #include <iomanip>
-#include <locale>
 #include <vector>
+#include <fmt/chrono.h>
 
 namespace {
 
@@ -53,30 +53,6 @@ void initLog()
 
 namespace AutomataMod {
 
-
-void log(LogLevel level, const std::string& message)
-{
-#ifdef AUTOMATA_LOG
-    log(level, message.c_str());
-#endif
-}
-
-
-void log(LogLevel level, const std::wstring& message)
-{
-#ifdef AUTOMATA_LOG
-    // When called with a 0 length output buffer this function does no conversion and
-    // returns the required length of the multibyte buffer
-    int buffLen = WideCharToMultiByte(CP_UTF8, 0, message.c_str(), message.size(), nullptr, 0, nullptr, nullptr);
-    if (buffLen != 0) {
-        std::vector<char> buff(buffLen);
-        WideCharToMultiByte(CP_UTF8, 0, message.c_str(), message.size(), buff.data(), buffLen, nullptr, nullptr);
-        std::string msg(buff.begin(), buff.end());
-        log(level, msg);
-    }
-#endif
-}
-
 void log(LogLevel level, const char* message)
 {
 #ifdef AUTOMATA_LOG
@@ -84,21 +60,17 @@ void log(LogLevel level, const char* message)
     if (!logFile.is_open())
         return;
 
-    std::time_t t = std::time(nullptr);
-    std::tm tm;
-    errno_t result = localtime_s(&tm, &t);
-    if (result == 0)
-        logFile << std::put_time(&tm, "%F %T") << ' ';
-
+    const char* levelString;
     if (level == LogLevel::LOG_ERROR) {
-        logFile << "[ERROR] ";
+        levelString = "[ERROR]";
     } else if (level == LogLevel::LOG_INFO)  {
-        logFile << "[INFO] ";
+        levelString = "[INFO]";
     } else {
-        logFile << "[DEBUG] ";
+        levelString = "[DEBUG]";
     }
 
-    logFile << message << std::endl;
+    std::string line = fmt::format("{:%F %T} {} {}", fmt::localtime(std::time(nullptr)), levelString, message);
+    logFile << line << std::endl;
 #endif // AUTOMATA_LOG
 }
 

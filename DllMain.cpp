@@ -78,7 +78,7 @@ HRESULT WINAPI D3D11CreateDeviceHooked(
 void init() {
     AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Initializing AutomataMod v1.9");
     uint64_t processRamStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
-    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Process ram start: " + std::to_string(processRamStartAddr));
+    AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Process ram start: 0x{:X}", processRamStartAddr);
 
     AutomataMod::ModConfig modConfig;
     uint64_t moduleSize = getModuleSize();
@@ -95,7 +95,7 @@ void init() {
         addresses.unitData = 0x14944C8;
         modConfig.setAddresses(std::move(addresses));
     } else {
-        AutomataMod::logEx(AutomataMod::LogLevel::LOG_ERROR, "Could not determine what automata version we are. VC3Mod will not boot. moduleSize: {}", moduleSize);
+        AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Could not determine what automata version we are. VC3Mod will not boot. moduleSize: {}", moduleSize);
         return;
     }
 
