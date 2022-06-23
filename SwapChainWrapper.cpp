@@ -90,7 +90,7 @@ void DXGISwapChainWrapper::renderWatermark() {
 
     float xscale = screenSize.width * (1.f / SCREEN_WIDTH);
     float yscale = screenSize.height * (1.f / SCREEN_HEIGHT);
-    float heightScale = 15.25 * yscale;
+    float heightScale = WATERMARK_TEXT_SIZE * yscale;
 
     if (!m_textFormat) {
         CComPtr<IDWriteFactory> dwFactory;
