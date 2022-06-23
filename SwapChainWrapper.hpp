@@ -25,7 +25,7 @@ class DXGISwapChainWrapper : public IDXGISwapChain1 {
     std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame;
 
     // FPS Display
-    std::array<float, 16> m_frameTimes;
+    std::array<float, 60> m_frameTimes;
     size_t m_frameTimeIndex;
 
     void renderWatermark();
