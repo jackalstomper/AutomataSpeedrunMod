@@ -61,7 +61,7 @@ export enum struct LogLevel {
  * @param ...args Format string values
 */
 export template<typename... T>
-void log(LogLevel level, std::string_view fmt, T&&... args) {
+void log(LogLevel level, const std::string_view& fmt, T&&... args) {
     std::string string = fmt::format(fmt::runtime(fmt), args...);
     log(level, string.c_str());
 }
