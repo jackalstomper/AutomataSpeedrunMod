@@ -1,10 +1,9 @@
-#pragma once
+export module PointerIterator;
 
 namespace AutomataMod {
 
-template<typename T>
-class PointerIterator
-{
+export template<typename T>
+class PointerIterator {
     T* _i;
 
 public:
@@ -12,41 +11,34 @@ public:
     PointerIterator(const PointerIterator& other) : _i(other._i) {}
     PointerIterator(T* p) : _i(p) {}
 
-    bool operator==(const PointerIterator& other)
-    {
+    bool operator==(const PointerIterator& other) {
         return _i == other._i;
     }
 
-    bool operator!=(const PointerIterator& other)
-    {
+    bool operator!=(const PointerIterator& other) {
         return !(*this == other);
     }
 
-    PointerIterator& operator++()
-    {
+    PointerIterator& operator++() {
         ++_i;
         return *this;
     }
 
-    PointerIterator operator++(int)
-    {
+    PointerIterator operator++(int) {
         T tmp = *this;
         ++tmp;
         return tmp;
     }
 
-    T* operator->()
-    {
+    T* operator->() {
         return _i;
     }
 
-    T& operator*()
-    {
+    T& operator*() {
         return *_i;
     }
 
-    bool operator()()
-    {
+    bool operator()() {
         return _i != nullptr;
     }
 };

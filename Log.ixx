@@ -1,6 +1,4 @@
-#include "Log.hpp"
-
-#ifdef AUTOMATA_LOG
+module;
 
 #include <windows.h>
 #include <ShlObj.h>
@@ -8,16 +6,17 @@
 #include <string>
 #include <ctime>
 #include <iomanip>
+#include <locale>
 #include <vector>
+#include <fmt/format.h>
 #include <fmt/chrono.h>
 
-namespace {
+export module Log;
 
 LPCWSTR logFolderName = L".automataMod";
 std::ofstream logFile;
 
-void initLog()
-{
+void initLog() {
     if (logFile.is_open())
         return;
 
@@ -47,23 +46,35 @@ void initLog()
     logFile.open(logFolder, std::ios::out | std::ios::trunc);
 }
 
-} // namespace
-
-#endif
-
 namespace AutomataMod {
 
-void log(LogLevel level, const char* message)
-{
-#ifdef AUTOMATA_LOG
+export enum struct LogLevel {
+    LOG_INFO,
+    LOG_ERROR,
+    LOG_DEBUG
+};
+
+/**
+ * @brief Log function that supports FMT formatting
+ * @param level The log level to use
+ * @param formatString The FMT format string to use
+ * @param ...args Format string values
+*/
+export template<typename... T>
+void log(LogLevel level, std::string_view fmt, T&&... args) {
+    std::string string = fmt::format(fmt::runtime(fmt), args...);
+    log(level, string.c_str());
+}
+
+export void log(LogLevel level, const char* message) {
     initLog();
     if (!logFile.is_open())
         return;
-
+    
     const char* levelString;
     if (level == LogLevel::LOG_ERROR) {
         levelString = "[ERROR]";
-    } else if (level == LogLevel::LOG_INFO)  {
+    } else if (level == LogLevel::LOG_INFO) {
         levelString = "[INFO]";
     } else {
         levelString = "[DEBUG]";
@@ -71,11 +82,6 @@ void log(LogLevel level, const char* message)
 
     std::string line = fmt::format("{:%F %T} {} {}", fmt::localtime(std::time(nullptr)), levelString, message);
     logFile << line << std::endl;
-#endif // AUTOMATA_LOG
-}
-
-void showErrorBox(const char* message) {
-    MessageBox(NULL, message, "AutomataMod has encountered an Error", MB_OK | MB_ICONSTOP);
 }
 
 } // namespace AutomataMod

@@ -1,18 +1,18 @@
 #include <windows.h>
+#include <atlbase.h>
 #include <Psapi.h>
 #include <thread>
 #include <vector>
 #include <d3d11.h>
 #include <dxgi1_2.h>
 #include <string>
-#include "AutomataMod.hpp"
-#include "Log.hpp"
-#include "iat.hpp"
-#include "FactoryWrapper.hpp"
-#include "DLLHook.hpp"
-#include "ModConfig.hpp"
 
-namespace {
+import AutomataMod;
+import Log;
+import IAT;
+import FactoryWrapper;
+import DLLHook;
+import ModConfig;
 
 std::unique_ptr<DLLHook> xinput;
 std::unique_ptr<std::thread> checkerThread;
@@ -84,7 +84,7 @@ void init() {
     uint64_t moduleSize = getModuleSize();
     if (moduleSize == 26177536) {
         AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Detected Automata version 1.02");
-        AutomataMod::ModConfig::Addresses addresses;
+        AutomataMod::Addresses addresses;
         addresses.currentPhase = 0xF64B10;
         addresses.isWorldLoaded = 0xF6E240;
         addresses.playerSetName = 0x124DE4C;
@@ -99,7 +99,7 @@ void init() {
         return;
     }
 
-    modChecker = std::unique_ptr<AutomataMod::ModChecker>(new AutomataMod::ModChecker(processRamStartAddr, std::move(modConfig)));
+    modChecker = std::make_unique<AutomataMod::ModChecker>(processRamStartAddr, std::move(modConfig));
 
     checkerThread = std::unique_ptr<std::thread>(new std::thread([processRamStartAddr]() {
         while (!shouldStopChecker) {
@@ -121,8 +121,6 @@ FuncPtr hookFunc(const std::string& funcName) {
 
     return xinput->hookFunc<FuncPtr>(funcName);
 }
-
-} // namespace
 
 extern "C" {
     BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {

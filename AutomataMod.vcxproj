@@ -103,8 +103,10 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>AUTOMATA_LOG;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>5244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
@@ -151,8 +153,10 @@
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>AUTOMATA_RELEASE_TARGET;AUTOMATA_LOG;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>None</DebugInformationFormat>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>5244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -169,36 +173,23 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ChipManager.cpp" />
-    <ClCompile Include="DLLHook.cpp" />
-    <ClCompile Include="DllMain.cpp" />
-    <ClCompile Include="FactoryWrapper.cpp" />
+    <ClCompile Include="AutomataMod.ixx" />
+    <ClCompile Include="ChipManager.ixx" />
+    <ClCompile Include="DLLHook.ixx" />
+    <ClCompile Include="DLLMain.cpp" />
+    <ClCompile Include="FactoryWrapper.ixx" />
     <ClCompile Include="fmt\src\format.cc" />
-    <ClCompile Include="iat.cpp" />
-    <ClCompile Include="InventoryManager.cpp" />
-    <ClCompile Include="AutomataMod.cpp" />
-    <ClCompile Include="Log.cpp" />
-    <ClCompile Include="ModConfig.cpp" />
-    <ClCompile Include="RefCounter.cpp" />
-    <ClCompile Include="SwapChainWrapper.cpp" />
-    <ClCompile Include="Util.cpp" />
+    <ClCompile Include="IAT.ixx" />
+    <ClCompile Include="InventoryManager.ixx" />
+    <ClCompile Include="Log.ixx" />
+    <ClCompile Include="ModConfig.ixx" />
+    <ClCompile Include="PointerIterator.ixx" />
+    <ClCompile Include="RefCounter.ixx" />
+    <ClCompile Include="SwapChainWrapper.ixx" />
+    <ClCompile Include="Util.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="xinput.def" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AutomataMod.hpp" />
-    <ClInclude Include="ChipManager.hpp" />
-    <ClInclude Include="DLLHook.hpp" />
-    <ClInclude Include="FactoryWrapper.hpp" />
-    <ClInclude Include="ModConfig.hpp" />
-    <ClInclude Include="iat.hpp" />
-    <ClInclude Include="InventoryManager.hpp" />
-    <ClInclude Include="Log.hpp" />
-    <ClInclude Include="PointerIterator.hpp" />
-    <ClInclude Include="RefCounter.hpp" />
-    <ClInclude Include="SwapChainWrapper.hpp" />
-    <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
