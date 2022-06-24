@@ -16,7 +16,7 @@ export struct InventoryItem {
     uint32_t quantity;
 
     void reset() {
-        itemId = 0xFFFFFFFF;
+        itemId = ~0u;
         unknown = ~0u;
         quantity = 0;
     }
