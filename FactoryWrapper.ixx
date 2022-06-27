@@ -55,7 +55,7 @@ public:
                 m_D2DFactory = nullptr;
                 m_currentSwapChain = nullptr;
             }
-            });
+        });
     }
 
     virtual HRESULT __stdcall SetPrivateData(REFGUID Name, UINT DataSize, const void* pData) override {
