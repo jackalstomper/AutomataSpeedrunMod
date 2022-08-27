@@ -67,10 +67,12 @@ void log(LogLevel level, const std::string_view& fmt, T&&... args) {
 }
 
 export void log(LogLevel level, const char* message) {
+#ifndef _DEBUG
     initLog();
     if (!logFile.is_open())
         return;
-    
+#endif
+
     const char* levelString;
     if (level == LogLevel::LOG_ERROR) {
         levelString = "[ERROR]";
@@ -81,7 +83,13 @@ export void log(LogLevel level, const char* message) {
     }
 
     std::string line = fmt::format("{:%F %T} {} {}", fmt::localtime(std::time(nullptr)), levelString, message);
+
+#if defined(_DEBUG)
+    line += '\n';
+    OutputDebugString(line.c_str());
+#else
     logFile << line << std::endl;
+#endif
 }
 
 } // namespace AutomataMod
