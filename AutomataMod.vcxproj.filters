@@ -41,6 +41,9 @@
     <ClCompile Include="AutomataMod.ixx">
       <Filter>AutomataMod</Filter>
     </ClCompile>
+    <ClCompile Include="HashCheck.ixx">
+      <Filter>AutomataMod</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="xinput.def" />
