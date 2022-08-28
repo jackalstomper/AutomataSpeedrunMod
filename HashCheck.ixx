@@ -4,6 +4,8 @@ module;
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <unordered_map>
+#include <string_view>
 #include <Windows.h>
 #include <bcrypt.h>
 
@@ -22,8 +24,7 @@ export enum NierVersion {
 
 export class NierVerisonInfo {
     NierVersion m_version;
-    std::string m_versionName;
-    std::string m_hash;
+    std::string_view m_versionName;
 
 public:
     NierVerisonInfo() :
@@ -31,35 +32,30 @@ public:
         m_versionName("NieR:Automata (Unknown)")
     {}
 
-    NierVerisonInfo(NierVersion version, std::string verisonName, std::string hash) :
+    NierVerisonInfo(NierVersion version, std::string_view verisonName) :
         m_version(version),
-        m_versionName(verisonName),
-        m_hash(hash)
+        m_versionName(verisonName)
     {}
 
     NierVersion version() const {
         return m_version;
     }
 
-    const std::string& versionName() const {
+    std::string_view versionName() const {
         return m_versionName;
     }
 
-    const std::string& hash() const {
-        return m_hash;
-    }
-
-    bool operator==(NierVersion other) {
+    bool operator==(NierVersion other) const {
         return m_version == other;
     }
 };
 
-const std::vector<NierVerisonInfo> VERSION_HASHES = {
-    { NIERVER_101, "NieR:Automata (v1.01)", "\xa0\x1a\xc5\x13\x2e\x10\x92\x52\xd6\xd9\xa4\xcb\xf9\x74\x61\x4d\xec\xfb\xe3\x23\x71\x3c\x1f\xbf\x5b\xc2\x48\xf0\x12\x61\x77\x3f" },
-    { NIERVER_102, "NieR:Automata (v1.02)", "\x51\x71\xbe\xd0\x9e\x6f\xec\x7b\x21\xbf\x0e\xa4\x79\xdb\xd2\xe1\xb2\x28\x69\x5c\x67\xd1\xf0\xb4\x78\x54\x9a\x9b\xe2\xf5\x72\x6a" },
-    { NIERVER_102_UNPACKED, "NieR:Automata (v1.02 Unpacked)", "\x5f\x97\x20\xd8\xc7\x7c\xd5\x97\x8e\xfe\x49\x88\x89\x3a\xf8\xfd\x99\x9f\x90\xa4\x76\xa8\xde\xeb\xb3\x91\x26\x94\xf6\x18\xdc\x43" },
-    { NIERVER_WINSTORE, "NieR:Automata (Winstore)", "\x3d\xde\x56\x6c\xea\x3e\x3b\xc1\x5e\x45\x92\x66\x02\xfb\x4f\x24\xd4\x8f\x77\xdf\x8a\x7b\xc5\x50\xa5\xb2\xdc\xae\xcc\xcf\x09\x48" },
-    { NIERVER_DEBUG, "NieR:Automata (Debug)", "\xe9\xef\x66\x01\xeb\x40\xeb\x0a\x6d\x3f\x30\xa6\x63\x95\x43\xec\x2f\x81\x71\xc2\x6a\x3d\xe8\xb2\xb1\x30\x39\xee\xbe\x3b\xc8\x1c" }
+const std::unordered_map<std::string, NierVerisonInfo> VERSION_HASHES = {
+    { "\xa0\x1a\xc5\x13\x2e\x10\x92\x52\xd6\xd9\xa4\xcb\xf9\x74\x61\x4d\xec\xfb\xe3\x23\x71\x3c\x1f\xbf\x5b\xc2\x48\xf0\x12\x61\x77\x3f", { NIERVER_101, "NieR:Automata (v1.01)" } },
+    { "\x51\x71\xbe\xd0\x9e\x6f\xec\x7b\x21\xbf\x0e\xa4\x79\xdb\xd2\xe1\xb2\x28\x69\x5c\x67\xd1\xf0\xb4\x78\x54\x9a\x9b\xe2\xf5\x72\x6a", { NIERVER_102, "NieR:Automata (v1.02)" } },
+    { "\x5f\x97\x20\xd8\xc7\x7c\xd5\x97\x8e\xfe\x49\x88\x89\x3a\xf8\xfd\x99\x9f\x90\xa4\x76\xa8\xde\xeb\xb3\x91\x26\x94\xf6\x18\xdc\x43", { NIERVER_102_UNPACKED, "NieR:Automata (v1.02 Unpacked)" } },
+    { "\x3d\xde\x56\x6c\xea\x3e\x3b\xc1\x5e\x45\x92\x66\x02\xfb\x4f\x24\xd4\x8f\x77\xdf\x8a\x7b\xc5\x50\xa5\xb2\xdc\xae\xcc\xcf\x09\x48", { NIERVER_WINSTORE, "NieR:Automata (Winstore)" } },
+    { "\xe9\xef\x66\x01\xeb\x40\xeb\x0a\x6d\x3f\x30\xa6\x63\x95\x43\xec\x2f\x81\x71\xc2\x6a\x3d\xe8\xb2\xb1\x30\x39\xee\xbe\x3b\xc8\x1c", { NIERVER_DEBUG, "NieR:Automata (Debug)" } }
 };
 
 std::string getNierFileName() {
@@ -152,14 +148,13 @@ std::string QueryhNierBinaryHash() {
 /// </summary>
 /// <throws>Throws std::runtime_error on any failure condition</throws>
 /// <returns>the binary version of the currently loaded NieR:Automata binary</returns>
-export const NierVerisonInfo& QueryNierBinaryVersion() {
+export NierVerisonInfo QueryNierBinaryVersion() {
     // Query the nier binary hash
     std::string exeHash = QueryhNierBinaryHash();
 
-    for (const auto& vHash : VERSION_HASHES) {
-        if (vHash.hash() == exeHash) {
-            return vHash;
-        }
+    auto it = VERSION_HASHES.find(exeHash);
+    if (it != VERSION_HASHES.end()) {
+        return it->second;
     }
 
     throw std::runtime_error("Failed to determine Nier verison from executable");
