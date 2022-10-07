@@ -211,7 +211,7 @@ DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown *pDevice, CComPtr<IDXGISwapC
   }
 }
 
-void DXGISwapChainWrapper::toggleDvdMode(bool enabled) { this->m_dvdMode = true; }
+void DXGISwapChainWrapper::toggleDvdMode(bool enabled) { this->m_dvdMode = enabled; }
 
 HRESULT __stdcall DXGISwapChainWrapper::QueryInterface(REFIID riid, void **ppvObject) {
   if (riid == __uuidof(IDXGISwapChain1) || riid == __uuidof(IDXGISwapChain) || riid == __uuidof(IDXGIDeviceSubObject) ||

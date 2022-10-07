@@ -1,5 +1,5 @@
 #include "AutomataMod.hpp"
-#include "Log.hpp"
+#include "infra/Log.hpp"
 
 namespace AutomataMod {
 

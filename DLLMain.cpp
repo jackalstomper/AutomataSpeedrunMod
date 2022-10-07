@@ -10,12 +10,12 @@
 #include <vector>
 
 #include "AutomataMod.hpp"
-#include "DLLHook.hpp"
-#include "FactoryWrapper.hpp"
-#include "HashCheck.hpp"
-#include "IAT.hpp"
-#include "Log.hpp"
-#include "ModConfig.hpp"
+#include "com/FactoryWrapper.hpp"
+#include "infra/DLLHook.hpp"
+#include "infra/HashCheck.hpp"
+#include "infra/IAT.hpp"
+#include "infra/Log.hpp"
+#include "infra/ModConfig.hpp"
 
 std::unique_ptr<DLLHook> xinput;
 std::unique_ptr<std::thread> checkerThread;

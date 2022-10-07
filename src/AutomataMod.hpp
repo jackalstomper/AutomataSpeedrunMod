@@ -4,10 +4,10 @@
 #include <cstdint>
 
 #include "ChipManager.hpp"
-#include "FactoryWrapper.hpp"
 #include "InventoryManager.hpp"
-#include "ModConfig.hpp"
-#include "Util.hpp"
+#include "com/FactoryWrapper.hpp"
+#include "infra/ModConfig.hpp"
+#include "infra/Util.hpp"
 
 namespace AutomataMod {
 
