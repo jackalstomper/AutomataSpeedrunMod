@@ -1,104 +1,104 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="DLLMain.cpp" />
     <ClCompile Include="fmt\src\format.cc">
       <Filter>fmt</Filter>
     </ClCompile>
-    <ClCompile Include="RefCounter.cpp">
-      <Filter>Backend\DirectX</Filter>
-    </ClCompile>
-    <ClCompile Include="SwapChainWrapper.cpp">
-      <Filter>Backend\DirectX</Filter>
-    </ClCompile>
-    <ClCompile Include="Log.cpp">
+    <ClCompile Include="src\AutomataMod.cpp">
       <Filter>AutomataMod</Filter>
     </ClCompile>
-    <ClCompile Include="FactoryWrapper.cpp">
-      <Filter>Backend\DirectX</Filter>
+    <ClCompile Include="src\ChipManager.cpp">
+      <Filter>AutomataMod</Filter>
     </ClCompile>
-    <ClCompile Include="DLLHook.cpp">
+    <ClCompile Include="src\InventoryManager.cpp">
+      <Filter>AutomataMod</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Log.cpp">
+      <Filter>AutomataMod</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModConfig.cpp">
+      <Filter>AutomataMod</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Util.cpp">
+      <Filter>AutomataMod</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DLLHook.cpp">
       <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="IAT.cpp">
+    <ClCompile Include="src\HashCheck.cpp">
       <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="Util.cpp">
-      <Filter>AutomataMod</Filter>
+    <ClCompile Include="src\IAT.cpp">
+      <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="ModConfig.cpp">
-      <Filter>AutomataMod</Filter>
+    <ClCompile Include="src\RefCounter.cpp">
+      <Filter>Backend</Filter>
     </ClCompile>
-    <ClCompile Include="InventoryManager.cpp">
-      <Filter>AutomataMod</Filter>
+    <ClCompile Include="src\FactoryWrapper.cpp">
+      <Filter>Backend\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="HashCheck.cpp">
-      <Filter>AutomataMod</Filter>
+    <ClCompile Include="src\SwapChainWrapper.cpp">
+      <Filter>Backend\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="ChipManager.cpp">
-      <Filter>AutomataMod</Filter>
-    </ClCompile>
-    <ClCompile Include="AutomataMod.cpp">
-      <Filter>AutomataMod</Filter>
-    </ClCompile>
+    <ClCompile Include="src\DLLMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="xinput.def" />
     <None Include=".clang-format" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="AutomataMod">
-      <UniqueIdentifier>{552bdf0f-f1ad-422e-a94e-d98e0d9e28a5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Backend">
-      <UniqueIdentifier>{90d1c64a-c365-40ec-8c3d-8b3e33dc86c5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Backend\DirectX">
-      <UniqueIdentifier>{8bda7084-c47f-4245-91ba-7caba4807bc9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="fmt">
       <UniqueIdentifier>{e1cac5ff-f93c-4adb-b49e-a5257302474e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AutomataMod">
+      <UniqueIdentifier>{e596718e-23ed-4506-a923-86436e077d70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend">
+      <UniqueIdentifier>{b90786dc-6a55-4005-81cd-1c68ad100c5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend\DirectX">
+      <UniqueIdentifier>{d17da319-45f9-4158-9250-79acc18ac241}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RefCounter.hpp">
-      <Filter>Backend\DirectX</Filter>
-    </ClInclude>
-    <ClInclude Include="SwapChainWrapper.hpp">
-      <Filter>Backend\DirectX</Filter>
-    </ClInclude>
-    <ClInclude Include="Log.hpp">
+    <ClInclude Include="src\AutomataMod.hpp">
       <Filter>AutomataMod</Filter>
     </ClInclude>
-    <ClInclude Include="FactoryWrapper.hpp">
-      <Filter>Backend\DirectX</Filter>
+    <ClInclude Include="src\ChipManager.hpp">
+      <Filter>AutomataMod</Filter>
     </ClInclude>
-    <ClInclude Include="DLLHook.hpp">
+    <ClInclude Include="src\InventoryManager.hpp">
+      <Filter>AutomataMod</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Log.hpp">
+      <Filter>AutomataMod</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModConfig.hpp">
+      <Filter>AutomataMod</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PointerIterator.hpp">
+      <Filter>AutomataMod</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util.hpp">
+      <Filter>AutomataMod</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DLLHook.hpp">
       <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="IAT.hpp">
+    <ClInclude Include="src\HashCheck.hpp">
       <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="Util.hpp">
-      <Filter>AutomataMod</Filter>
+    <ClInclude Include="src\IAT.hpp">
+      <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="PointerIterator.hpp">
-      <Filter>AutomataMod</Filter>
+    <ClInclude Include="src\RefCounter.hpp">
+      <Filter>Backend</Filter>
     </ClInclude>
-    <ClInclude Include="ModConfig.hpp">
-      <Filter>AutomataMod</Filter>
+    <ClInclude Include="src\FactoryWrapper.hpp">
+      <Filter>Backend\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="InventoryManager.hpp">
-      <Filter>AutomataMod</Filter>
-    </ClInclude>
-    <ClInclude Include="HashCheck.hpp">
-      <Filter>AutomataMod</Filter>
-    </ClInclude>
-    <ClInclude Include="ChipManager.hpp">
-      <Filter>AutomataMod</Filter>
-    </ClInclude>
-    <ClInclude Include="AutomataMod.hpp">
-      <Filter>AutomataMod</Filter>
+    <ClInclude Include="src\SwapChainWrapper.hpp">
+      <Filter>Backend\DirectX</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

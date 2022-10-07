@@ -168,39 +168,39 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AutomataMod.cpp" />
-    <ClCompile Include="ChipManager.cpp" />
-    <ClCompile Include="DLLHook.cpp" />
-    <ClCompile Include="DLLMain.cpp" />
-    <ClCompile Include="FactoryWrapper.cpp" />
     <ClCompile Include="fmt\src\format.cc" />
-    <ClCompile Include="HashCheck.cpp" />
-    <ClCompile Include="IAT.cpp" />
-    <ClCompile Include="InventoryManager.cpp" />
-    <ClCompile Include="Log.cpp" />
-    <ClCompile Include="ModConfig.cpp" />
-    <ClCompile Include="RefCounter.cpp" />
-    <ClCompile Include="SwapChainWrapper.cpp" />
-    <ClCompile Include="Util.cpp" />
+    <ClCompile Include="src\AutomataMod.cpp" />
+    <ClCompile Include="src\ChipManager.cpp" />
+    <ClCompile Include="src\DLLHook.cpp" />
+    <ClCompile Include="src\DLLMain.cpp" />
+    <ClCompile Include="src\FactoryWrapper.cpp" />
+    <ClCompile Include="src\HashCheck.cpp" />
+    <ClCompile Include="src\IAT.cpp" />
+    <ClCompile Include="src\InventoryManager.cpp" />
+    <ClCompile Include="src\Log.cpp" />
+    <ClCompile Include="src\ModConfig.cpp" />
+    <ClCompile Include="src\RefCounter.cpp" />
+    <ClCompile Include="src\SwapChainWrapper.cpp" />
+    <ClCompile Include="src\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include="xinput.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AutomataMod.hpp" />
-    <ClInclude Include="ChipManager.hpp" />
-    <ClInclude Include="DLLHook.hpp" />
-    <ClInclude Include="FactoryWrapper.hpp" />
-    <ClInclude Include="HashCheck.hpp" />
-    <ClInclude Include="IAT.hpp" />
-    <ClInclude Include="InventoryManager.hpp" />
-    <ClInclude Include="Log.hpp" />
-    <ClInclude Include="ModConfig.hpp" />
-    <ClInclude Include="PointerIterator.hpp" />
-    <ClInclude Include="RefCounter.hpp" />
-    <ClInclude Include="SwapChainWrapper.hpp" />
-    <ClInclude Include="Util.hpp" />
+    <ClInclude Include="src\AutomataMod.hpp" />
+    <ClInclude Include="src\ChipManager.hpp" />
+    <ClInclude Include="src\DLLHook.hpp" />
+    <ClInclude Include="src\FactoryWrapper.hpp" />
+    <ClInclude Include="src\HashCheck.hpp" />
+    <ClInclude Include="src\IAT.hpp" />
+    <ClInclude Include="src\InventoryManager.hpp" />
+    <ClInclude Include="src\Log.hpp" />
+    <ClInclude Include="src\ModConfig.hpp" />
+    <ClInclude Include="src\PointerIterator.hpp" />
+    <ClInclude Include="src\RefCounter.hpp" />
+    <ClInclude Include="src\SwapChainWrapper.hpp" />
+    <ClInclude Include="src\Util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
