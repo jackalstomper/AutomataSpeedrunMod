@@ -168,24 +168,39 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AutomataMod.ixx" />
-    <ClCompile Include="ChipManager.ixx" />
-    <ClCompile Include="DLLHook.ixx" />
+    <ClCompile Include="AutomataMod.cpp" />
+    <ClCompile Include="ChipManager.cpp" />
+    <ClCompile Include="DLLHook.cpp" />
     <ClCompile Include="DLLMain.cpp" />
-    <ClCompile Include="FactoryWrapper.ixx" />
+    <ClCompile Include="FactoryWrapper.cpp" />
     <ClCompile Include="fmt\src\format.cc" />
-    <ClCompile Include="HashCheck.ixx" />
-    <ClCompile Include="IAT.ixx" />
-    <ClCompile Include="InventoryManager.ixx" />
-    <ClCompile Include="Log.ixx" />
-    <ClCompile Include="ModConfig.ixx" />
-    <ClCompile Include="PointerIterator.ixx" />
-    <ClCompile Include="RefCounter.ixx" />
-    <ClCompile Include="SwapChainWrapper.ixx" />
-    <ClCompile Include="Util.ixx" />
+    <ClCompile Include="HashCheck.cpp" />
+    <ClCompile Include="IAT.cpp" />
+    <ClCompile Include="InventoryManager.cpp" />
+    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="ModConfig.cpp" />
+    <ClCompile Include="RefCounter.cpp" />
+    <ClCompile Include="SwapChainWrapper.cpp" />
+    <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".clang-format" />
     <None Include="xinput.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AutomataMod.hpp" />
+    <ClInclude Include="ChipManager.hpp" />
+    <ClInclude Include="DLLHook.hpp" />
+    <ClInclude Include="FactoryWrapper.hpp" />
+    <ClInclude Include="HashCheck.hpp" />
+    <ClInclude Include="IAT.hpp" />
+    <ClInclude Include="InventoryManager.hpp" />
+    <ClInclude Include="Log.hpp" />
+    <ClInclude Include="ModConfig.hpp" />
+    <ClInclude Include="PointerIterator.hpp" />
+    <ClInclude Include="RefCounter.hpp" />
+    <ClInclude Include="SwapChainWrapper.hpp" />
+    <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
