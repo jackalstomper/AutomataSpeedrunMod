@@ -20,7 +20,7 @@ public:
 	}
 
 	PointerIterator operator++(int) {
-		T tmp = *this;
+		T tmp = _i;
 		++tmp;
 		return tmp;
 	}
@@ -29,7 +29,7 @@ public:
 
 	T &operator*() { return *_i; }
 
-	bool operator()() { return _i != nullptr; }
+	operator bool() { return _i != nullptr; }
 };
 
 } // namespace AutomataMod
