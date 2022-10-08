@@ -2,21 +2,25 @@
 
 #include "RefCounter.hpp"
 #include "SwapChainWrapper.hpp"
-#include <atlbase.h>
+#include "WrapperPointer.hpp"
 #include <d2d1_2.h>
 #include <dwrite.h>
 #include <dxgi1_2.h>
+#include <memory>
+#include <wrl/client.h>
 
 namespace DxWrappers {
 
+using namespace Microsoft::WRL;
+
 class DXGIFactoryWrapper : public IDXGIFactory2 {
 	RefCounter m_refCounter;
-	CComPtr<IDXGIFactory2> m_target;
-	CComPtr<ID2D1Factory2> m_D2DFactory;
-	CComPtr<DXGISwapChainWrapper> m_currentSwapChain;
+	ComPtr<IDXGIFactory2> m_target;
+	ComPtr<ID2D1Factory2> m_D2DFactory;
+	WrapperPointer<DXGISwapChainWrapper> m_currentSwapChain;
 
 public:
-	DXGIFactoryWrapper(CComPtr<IDXGIFactory2> target);
+	DXGIFactoryWrapper(ComPtr<IDXGIFactory2> target);
 	virtual ~DXGIFactoryWrapper();
 	void toggleDvdMode(bool enabled);
 

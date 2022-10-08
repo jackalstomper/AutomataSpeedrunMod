@@ -3,11 +3,11 @@
 #include <fmt/format.h>
 #include <fmt/xchar.h>
 #include <random>
+#include <string>
 
 namespace {
 
-const WCHAR *VC3_NAME = L"VC3Mod 1.9";
-const UINT VC3_LEN = (UINT)wcslen(VC3_NAME);
+const std::wstring VC3_NAME(L"VC3Mod 1.9");
 
 const float SCREEN_WIDTH = 1600.f;
 const float SCREEN_HEIGHT = 900.f;
@@ -31,19 +31,23 @@ void DXGISwapChainWrapper::renderWatermark() {
 		return;
 	}
 
+	_ASSERT(m_deviceContext);
+
 	static const D2D1::Matrix3x2F root = D2D1::Matrix3x2F::Identity();
 	std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float> frameDelta = now - m_lastFrame;
 
-	CComPtr<IDXGISurface> dxgiBackBuffer;
-	m_target->GetBuffer(0, __uuidof(IDXGISurface), (void **)&dxgiBackBuffer);
-	if (!dxgiBackBuffer) {
+	ComPtr<IDXGISurface> dxgiBackBuffer;
+	HRESULT hr = m_target->GetBuffer(0, __uuidof(IDXGISurface), reinterpret_cast<void **>(dxgiBackBuffer.GetAddressOf()));
+	if (!SUCCEEDED(hr)) {
+		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get buffer from swap chain");
 		return;
 	}
 
-	CComPtr<ID2D1Bitmap1> bitmap;
-	m_deviceContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer, &BITMAP_PROPERTIES, &bitmap);
-	if (!bitmap) {
+	ComPtr<ID2D1Bitmap1> bitmap;
+	hr = m_deviceContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer.Get(), &BITMAP_PROPERTIES, bitmap.GetAddressOf());
+	if (!SUCCEEDED(hr)) {
+		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get bitmap from device context");
 		return;
 	}
 
@@ -57,13 +61,19 @@ void DXGISwapChainWrapper::renderWatermark() {
 	float heightScale = WATERMARK_TEXT_SIZE * yscale;
 
 	if (!m_textFormat) {
-		CComPtr<IDWriteFactory> dwFactory;
-		DWriteCreateFactory(DWRITE_FACTORY_TYPE_ISOLATED, __uuidof(IDWriteFactory), (IUnknown **)&dwFactory);
-		dwFactory->CreateTextFormat(L"Consolas", NULL, DWRITE_FONT_WEIGHT_MEDIUM, DWRITE_FONT_STYLE_NORMAL,
-																DWRITE_FONT_STRETCH_NORMAL, heightScale, L"en-us", &m_textFormat);
+		ComPtr<IDWriteFactory> dwFactory;
+		hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_ISOLATED, __uuidof(IDWriteFactory),
+														 reinterpret_cast<IUnknown **>(dwFactory.GetAddressOf()));
+		if (!SUCCEEDED(hr)) {
+			AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to create IDWriteFactory");
+			return;
+		}
 
-		if (!m_textFormat) {
-			AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateTextFormat.");
+		hr = dwFactory->CreateTextFormat(L"Consolas", NULL, DWRITE_FONT_WEIGHT_MEDIUM, DWRITE_FONT_STYLE_NORMAL,
+																		 DWRITE_FONT_STRETCH_NORMAL, heightScale, L"en-us", m_textFormat.GetAddressOf());
+
+		if (!SUCCEEDED(hr)) {
+			AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to create IDWriteTextFormat");
 			return;
 		}
 	}
@@ -95,34 +105,40 @@ void DXGISwapChainWrapper::renderWatermark() {
 
 	D2D1_RECT_F rect = {m_location.x, m_location.y, m_location.x + 150.f * xscale, m_location.y + rectHeight};
 
-	CComPtr<ID2D1Image> oldTarget;
-	m_deviceContext->GetTarget(&oldTarget);
-	m_deviceContext->SetTarget(bitmap);
+	_ASSERT(m_textFormat);
+	_ASSERT(m_shadowBrush);
+	_ASSERT(m_brush);
+	_ASSERT(bitmap);
+
+	ComPtr<ID2D1Image> oldTarget;
+	m_deviceContext->GetTarget(oldTarget.GetAddressOf());
+
 	m_deviceContext->BeginDraw();
+	m_deviceContext->SetTarget(bitmap.Get());
 	m_deviceContext->SetTransform(root);
 
 	// Draw shadow behind our text
 	m_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, 2));
-	m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_shadowBrush);
+	m_deviceContext->DrawText(VC3_NAME.c_str(), VC3_NAME.size(), m_textFormat.Get(), rect, m_shadowBrush.Get());
 	m_deviceContext->SetTransform(root);
 
 	// Draw main text
-	m_deviceContext->DrawText(VC3_NAME, VC3_LEN, m_textFormat, rect, m_brush);
+	m_deviceContext->DrawText(VC3_NAME.c_str(), VC3_NAME.size(), m_textFormat.Get(), rect, m_brush.Get());
 
 	std::chrono::duration<float, std::milli> frameDeltaMilli = now - m_lastFrame;
 	std::wstring fpsString = calculateFps(frameDeltaMilli.count());
 
 	// Draw FPS Shadow
 	m_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, textHeight + 2));
-	m_deviceContext->DrawText(fpsString.c_str(), fpsString.length(), m_textFormat, rect, m_shadowBrush);
+	m_deviceContext->DrawText(fpsString.c_str(), fpsString.length(), m_textFormat.Get(), rect, m_shadowBrush.Get());
 	m_deviceContext->SetTransform(root);
 
 	// Draw FPS Counter
 	m_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(0, textHeight));
-	m_deviceContext->DrawText(fpsString.c_str(), fpsString.length(), m_textFormat, rect, m_brush);
+	m_deviceContext->DrawText(fpsString.c_str(), fpsString.length(), m_textFormat.Get(), rect, m_brush.Get());
 
 	m_deviceContext->EndDraw();
-	m_deviceContext->SetTarget(oldTarget);
+	m_deviceContext->SetTarget(oldTarget.Get());
 	m_lastFrame = now;
 }
 
@@ -165,50 +181,49 @@ std::wstring DXGISwapChainWrapper::calculateFps(float frameDelta) {
 
 DXGISwapChainWrapper::~DXGISwapChainWrapper() {}
 
-DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown *pDevice, CComPtr<IDXGISwapChain1> target,
-																					 CComPtr<ID2D1Factory2> d2dFactory) {
+DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown *pDevice, ComPtr<IDXGISwapChain1> target,
+																					 ComPtr<ID2D1Factory2> d2dFactory) {
 	m_target = target;
 	m_dvdMode = false;
 
 	rotateVelocity(); // Rotate the velocity in a random direction
 
-	CComPtr<IDXGIDevice> pDXGIDevice;
-	HRESULT queryResult = pDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
+	ComPtr<IDXGIDevice> dxgiDevice;
+	HRESULT queryResult =
+			pDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(dxgiDevice.GetAddressOf()));
 	if (!SUCCEEDED(queryResult)) {
 		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get DXGIDevice. Error code: {}", queryResult);
 		return;
 	}
 
-	queryResult = d2dFactory->CreateDevice(pDXGIDevice, &m_D2DDevice);
+	queryResult = d2dFactory->CreateDevice(dxgiDevice.Get(), m_D2DDevice.GetAddressOf());
 	if (!SUCCEEDED(queryResult)) {
 		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateDevice. Error code: {}", queryResult);
 		return;
 	}
 
-	m_deviceContext = nullptr;
-
-	queryResult = m_D2DDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &m_deviceContext);
+	queryResult = m_D2DDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, m_deviceContext.GetAddressOf());
 	if (!SUCCEEDED(queryResult)) {
 		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateDeviceContext. Error code: {}",
 										 queryResult);
 		return;
 	}
 
+	queryResult = m_deviceContext->CreateSolidColorBrush(WATERMARK_COLOR, m_brush.GetAddressOf());
+	if (!SUCCEEDED(queryResult)) {
+		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateSolidColorBrush. Error code: {}",
+										 queryResult);
+		return;
+	}
+
+	queryResult = m_deviceContext->CreateSolidColorBrush(SHADOW_COLOR, m_shadowBrush.GetAddressOf());
+	if (!SUCCEEDED(queryResult)) {
+		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateSolidColorBrush. Error code: {}",
+										 queryResult);
+		return;
+	}
+
 	m_lastFrame = std::chrono::high_resolution_clock::now();
-
-	queryResult = m_deviceContext->CreateSolidColorBrush(WATERMARK_COLOR, &m_brush);
-	if (!SUCCEEDED(queryResult)) {
-		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateSolidColorBrush. Error code: {}",
-										 queryResult);
-		return;
-	}
-
-	queryResult = m_deviceContext->CreateSolidColorBrush(SHADOW_COLOR, &m_shadowBrush);
-	if (!SUCCEEDED(queryResult)) {
-		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed calling CreateSolidColorBrush. Error code: {}",
-										 queryResult);
-		return;
-	}
 }
 
 void DXGISwapChainWrapper::toggleDvdMode(bool enabled) { this->m_dvdMode = enabled; }
@@ -230,9 +245,13 @@ ULONG __stdcall DXGISwapChainWrapper::AddRef() { return m_refCounter.incrementRe
 ULONG __stdcall DXGISwapChainWrapper::Release() {
 	return m_refCounter.decrementRef([this](ULONG refCount) {
 		if (refCount == 0) {
-			m_brush = nullptr;
+			AutomataMod::log(AutomataMod::LogLevel::LOG_DEBUG, "DXGISwapChainWrapper ref count is zero. clearing.");
 			m_shadowBrush = nullptr;
+			m_brush = nullptr;
 			m_textFormat = nullptr;
+			m_D2DDevice = nullptr;
+			m_deviceContext = nullptr;
+			m_target = nullptr;
 		}
 	});
 }

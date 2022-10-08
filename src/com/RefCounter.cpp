@@ -2,7 +2,7 @@
 
 namespace DxWrappers {
 
-RefCounter::RefCounter() { m_refCount = 1; }
+RefCounter::RefCounter() : m_refCount(0) {}
 
 ULONG RefCounter::getRefCount() const { return m_refCount; }
 

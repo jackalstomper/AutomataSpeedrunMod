@@ -4,6 +4,11 @@ project(AutomataSpeedrunMod)
 set(CMAKE_CXX_STANDARD 17)
 
 add_definitions(-DWIN32_LEAN_AND_MEAN -DAUTOMATA_LOG)
+add_definitions(-D__WRL_CLASSIC_COM_STRICT__)
+
+if(CMAKE_BUILD_TYPE EQUAL Debug)
+	add_definitions(-D_ATL_DEBUG_INTERFACES)
+endif()
 
 if(CMAKE_BUILD_TYPE EQUAL Release)
 	add_definitions(-DAUTOMATA_RELEASE_TARGET)

@@ -10,6 +10,10 @@
 #include <vector>
 #include <windows.h>
 
+#ifdef _DEBUG
+#include <cstdio>
+#endif
+
 namespace {
 
 LPCWSTR logFolderName = L".automataMod";
@@ -45,6 +49,27 @@ void initLog() {
 	logFile.open(logFolder, std::ios::out | std::ios::trunc);
 }
 
+#ifdef _DEBUG
+void openConsole() {
+	static bool consoleOpened = false;
+	if (consoleOpened)
+		return;
+	consoleOpened = AllocConsole();
+}
+
+void logToConsole(const std::string &str) {
+	static HANDLE stdOutHandle = nullptr;
+	openConsole();
+	if (!stdOutHandle)
+		stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	if (!stdOutHandle)
+		return;
+
+	WriteConsole(stdOutHandle, str.c_str(), str.size(), nullptr, nullptr);
+}
+#endif
+
 } // namespace
 
 namespace AutomataMod {
@@ -53,6 +78,9 @@ void log(LogLevel level, const char *message) {
 #ifndef _DEBUG
 	initLog();
 	if (!logFile.is_open())
+		return;
+
+	if (level == LogLevel::LOG_DEBUG)
 		return;
 #endif
 
@@ -70,6 +98,7 @@ void log(LogLevel level, const char *message) {
 #if defined(_DEBUG)
 	line += '\n';
 	OutputDebugString(line.c_str());
+	logToConsole(line);
 #else
 	logFile << line << std::endl;
 #endif

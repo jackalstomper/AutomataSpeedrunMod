@@ -2,22 +2,24 @@
 
 #include "RefCounter.hpp"
 #include <array>
-#include <atlbase.h>
 #include <chrono>
 #include <d2d1_2.h>
 #include <dwrite.h>
 #include <dxgi1_2.h>
+#include <wrl/client.h>
 
 namespace DxWrappers {
 
+using namespace Microsoft::WRL;
+
 class DXGISwapChainWrapper : public IDXGISwapChain1 {
 	RefCounter m_refCounter;
-	CComPtr<IDXGISwapChain1> m_target;
-	CComPtr<ID2D1DeviceContext> m_deviceContext;
-	CComPtr<ID2D1Device> m_D2DDevice;
-	CComPtr<IDWriteTextFormat> m_textFormat;
-	CComPtr<ID2D1SolidColorBrush> m_brush;
-	CComPtr<ID2D1SolidColorBrush> m_shadowBrush;
+	ComPtr<IDXGISwapChain1> m_target;
+	ComPtr<ID2D1DeviceContext> m_deviceContext;
+	ComPtr<ID2D1Device> m_D2DDevice;
+	ComPtr<IDWriteTextFormat> m_textFormat;
+	ComPtr<ID2D1SolidColorBrush> m_brush;
+	ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
 
 	bool m_dvdMode; // true when watermark should bounce around
 	D2D1_VECTOR_2F m_location;
@@ -34,7 +36,7 @@ class DXGISwapChainWrapper : public IDXGISwapChain1 {
 	std::wstring calculateFps(float frameDelta);
 
 public:
-	DXGISwapChainWrapper(IUnknown *pDevice, CComPtr<IDXGISwapChain1> target, CComPtr<ID2D1Factory2> d2dFactory);
+	DXGISwapChainWrapper(IUnknown *pDevice, ComPtr<IDXGISwapChain1> target, ComPtr<ID2D1Factory2> d2dFactory);
 	virtual ~DXGISwapChainWrapper();
 	void toggleDvdMode(bool enabled);
 

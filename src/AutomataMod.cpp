@@ -88,7 +88,7 @@ ModChecker::ModChecker(uint64_t processRamStart, ModConfig &&modConfig)
 	m_tauntChipsAdded = false;
 }
 
-void ModChecker::checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper) {
+void ModChecker::checkStuff() {
 	if (*m_isWorldLoaded == 1 && *m_playerNameSet == 1) {
 		Vector3f *playerLocation = reinterpret_cast<Vector3f *>(m_playerLocationPtr);
 		if (!m_inventoryModded && strncmp(m_currentPhase, "58_AB_BossArea_Fall", 19) == 0) {
@@ -118,11 +118,11 @@ void ModChecker::checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapp
 
 	if (*m_isLoading) {
 		if (!m_dvdModeEnabled) {
-			factoryWrapper->toggleDvdMode(true);
+			// watermark.toggleDvdMode(true);
 			m_dvdModeEnabled = true;
 		}
 	} else if (m_dvdModeEnabled) {
-		factoryWrapper->toggleDvdMode(false);
+		// watermark.toggleDvdMode(false);
 		m_dvdModeEnabled = false;
 	}
 }

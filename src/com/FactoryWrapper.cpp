@@ -1,11 +1,16 @@
 #include "FactoryWrapper.hpp"
+#include "infra/Log.hpp"
 
 namespace DxWrappers {
 
-DXGIFactoryWrapper::DXGIFactoryWrapper(CComPtr<IDXGIFactory2> target) {
+DXGIFactoryWrapper::DXGIFactoryWrapper(ComPtr<IDXGIFactory2> target) {
 	m_target = target;
 	D2D1_FACTORY_OPTIONS opt = {D2D1_DEBUG_LEVEL_ERROR};
-	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory2), &opt, (void **)&m_D2DFactory);
+	HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory2), &opt,
+																 reinterpret_cast<void **>(m_D2DFactory.GetAddressOf()));
+
+	if (!SUCCEEDED(hr))
+		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "D2D1CreateFactory failed with code {}", hr);
 }
 
 DXGIFactoryWrapper::~DXGIFactoryWrapper() {}
@@ -32,8 +37,10 @@ ULONG __stdcall DXGIFactoryWrapper::AddRef() { return m_refCounter.incrementRef(
 ULONG __stdcall DXGIFactoryWrapper::Release() {
 	return m_refCounter.decrementRef([this](ULONG refCount) {
 		if (refCount == 0) {
-			m_D2DFactory = nullptr;
+			AutomataMod::log(AutomataMod::LogLevel::LOG_DEBUG, "DXGIFactoryWrapper ref count is zero. clearing.");
 			m_currentSwapChain = nullptr;
+			m_D2DFactory = nullptr;
+			m_target = nullptr;
 		}
 	});
 }
@@ -88,17 +95,20 @@ HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForHwnd(IUnknown *pDevice, 
 																														 const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
 																														 IDXGIOutput *pRestrictToOutput,
 																														 IDXGISwapChain1 **ppSwapChain) {
-	CComPtr<IDXGISwapChain1> swapChain;
+	AutomataMod::log(AutomataMod::LogLevel::LOG_DEBUG, "CreateSwapChainForHwnd called");
+	ComPtr<IDXGISwapChain1> swapChain;
+	HRESULT result = m_target->CreateSwapChainForHwnd(pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput,
+																										swapChain.GetAddressOf());
 
-	HRESULT result =
-			m_target->CreateSwapChainForHwnd(pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, &swapChain);
-	if (SUCCEEDED(result)) {
-		m_currentSwapChain = new DXGISwapChainWrapper(pDevice, swapChain, m_D2DFactory);
-		*ppSwapChain = m_currentSwapChain;
+	if (!SUCCEEDED(result)) {
+		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to create swapchain in CreateSwapChainForHwnd");
+		*ppSwapChain = nullptr;
 		return result;
 	}
 
-	*ppSwapChain = nullptr;
+	m_currentSwapChain = new DXGISwapChainWrapper(pDevice, swapChain, m_D2DFactory);
+	m_currentSwapChain->AddRef();
+	*ppSwapChain = m_currentSwapChain.get();
 	return result;
 }
 

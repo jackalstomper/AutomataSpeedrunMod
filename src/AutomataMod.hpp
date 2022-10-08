@@ -1,7 +1,7 @@
 #pragma once
 
-#include <atlbase.h>
 #include <cstdint>
+#include <wrl/client.h>
 
 #include "ChipManager.hpp"
 #include "InventoryManager.hpp"
@@ -43,7 +43,7 @@ class ModChecker {
 
 public:
 	ModChecker(uint64_t processRamStart, ModConfig &&modConfig);
-	void checkStuff(CComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper);
+	void checkStuff();
 };
 
 } // namespace AutomataMod

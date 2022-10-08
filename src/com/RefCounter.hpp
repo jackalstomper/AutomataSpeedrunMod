@@ -7,8 +7,8 @@
 namespace DxWrappers {
 
 class RefCounter {
-	std::mutex m_mutex;
 	ULONG m_refCount;
+	std::mutex m_mutex;
 
 public:
 	RefCounter();
