@@ -1,5 +1,7 @@
 #include "InventoryManager.hpp"
 
+#include <type_traits>
+
 namespace AutomataMod {
 
 using Iterator = InventoryManager::Iterator;

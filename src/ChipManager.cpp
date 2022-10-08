@@ -1,12 +1,12 @@
 #include "ChipManager.hpp"
 
-#include <algorithm>
+#include <type_traits>
 
 namespace AutomataMod {
 
 using Iterator = ChipManager::Iterator;
 
-const int ChipManager::MAX_SLOT_COUNT = 300;    // total amount of chips that can be stored on a player profile
+const int ChipManager::MAX_SLOT_COUNT = 300;		// total amount of chips that can be stored on a player profile
 const uint32_t ChipManager::EMPTY_SLOT_ID = ~0; // chip ID indicating an empty chip slot
 const uint32_t ChipManager::WAUP_CHIP_ID = 3007;
 const uint32_t ChipManager::RAUP_CHIP_ID = 3034;
@@ -16,7 +16,12 @@ ChipManager::ChipManager(uint64_t chipTableRamStart) : _firstChip(reinterpret_ca
 
 // Returns a chip with the given chip ID present in inventory, or nullptr if none found
 Iterator ChipManager::getChipSlotById(uint32_t chipId) {
-	return std::find_if(begin(), end(), [chipId](const ChipSlot &i) { return i.id == chipId; });
+	for (auto i = begin(); i != end(); ++i) {
+		if (i->id == chipId)
+			return i;
+	}
+
+	return end();
 }
 
 void ChipManager::addChip(const ChipSlot &newChip) {
