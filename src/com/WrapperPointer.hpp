@@ -37,6 +37,11 @@ public:
 		return *this;
 	}
 
+	Microsoft::WRL::ComPtr<T> getComPtr() const {
+		Microsoft::WRL::ComPtr<T> p = _comPtr;
+		return p;
+	}
+
 	operator bool() const { return _obj != nullptr; }
 	T *operator->() const { return _obj.get(); }
 	T *get() const { return _comPtr.Get(); }

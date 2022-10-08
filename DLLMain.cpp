@@ -98,8 +98,8 @@ void init() {
 
 	checkerThread = std::unique_ptr<std::thread>(new std::thread([processRamStartAddr]() {
 		while (!shouldStopChecker) {
-			if (modChecker)
-				modChecker->checkStuff();
+			if (modChecker && factory)
+				modChecker->checkStuff(factory.getComPtr());
 
 			std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(250)); // check stuff 4 times a second
 		}

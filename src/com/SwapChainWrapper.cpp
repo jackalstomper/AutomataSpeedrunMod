@@ -186,8 +186,6 @@ DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown *pDevice, ComPtr<IDXGISwapCh
 	m_target = target;
 	m_dvdMode = false;
 
-	rotateVelocity(); // Rotate the velocity in a random direction
-
 	ComPtr<IDXGIDevice> dxgiDevice;
 	HRESULT queryResult =
 			pDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(dxgiDevice.GetAddressOf()));
@@ -226,7 +224,10 @@ DXGISwapChainWrapper::DXGISwapChainWrapper(IUnknown *pDevice, ComPtr<IDXGISwapCh
 	m_lastFrame = std::chrono::high_resolution_clock::now();
 }
 
-void DXGISwapChainWrapper::toggleDvdMode(bool enabled) { this->m_dvdMode = enabled; }
+void DXGISwapChainWrapper::toggleDvdMode(bool enabled) {
+	rotateVelocity(); // Rotate the velocity in a random direction
+	this->m_dvdMode = enabled;
+}
 
 HRESULT __stdcall DXGISwapChainWrapper::QueryInterface(REFIID riid, void **ppvObject) {
 	if (riid == __uuidof(IDXGISwapChain1) || riid == __uuidof(IDXGISwapChain) || riid == __uuidof(IDXGIDeviceSubObject) ||

@@ -43,7 +43,7 @@ class ModChecker {
 
 public:
 	ModChecker(uint64_t processRamStart, ModConfig &&modConfig);
-	void checkStuff();
+	void checkStuff(Microsoft::WRL::ComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper);
 };
 
 } // namespace AutomataMod
