@@ -5,8 +5,8 @@
 namespace AutomataMod {
 
 ModConfig *ModConfig::setAddresses(Addresses &&addresses) {
-  m_addresses = std::move(addresses);
-  return this;
+	m_addresses = std::move(addresses);
+	return this;
 }
 
 const Addresses &ModConfig::getAddresses() const { return m_addresses; }

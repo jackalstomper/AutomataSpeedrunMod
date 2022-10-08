@@ -16,13 +16,13 @@ ChipManager::ChipManager(uint64_t chipTableRamStart) : _firstChip(reinterpret_ca
 
 // Returns a chip with the given chip ID present in inventory, or nullptr if none found
 Iterator ChipManager::getChipSlotById(uint32_t chipId) {
-  return std::find_if(begin(), end(), [chipId](const ChipSlot &i) { return i.id == chipId; });
+	return std::find_if(begin(), end(), [chipId](const ChipSlot &i) { return i.id == chipId; });
 }
 
 void ChipManager::addChip(const ChipSlot &newChip) {
-  Iterator slot = getChipSlotById(EMPTY_SLOT_ID);
-  if (slot != end())
-    *slot = newChip;
+	Iterator slot = getChipSlotById(EMPTY_SLOT_ID);
+	if (slot != end())
+		*slot = newChip;
 }
 
 Iterator ChipManager::begin() { return Iterator(_firstChip); }
@@ -31,6 +31,6 @@ Iterator ChipManager::end() { return Iterator(_firstChip + MAX_SLOT_COUNT); }
 
 static_assert(std::is_trivially_copyable<ChipSlot>::value, "ChipSlot must be POD");
 static_assert(sizeof(ChipSlot) == 48,
-              "ChipSlot isn't 48 bytes in size! This breaks pointer reading logic with game memory!");
+							"ChipSlot isn't 48 bytes in size! This breaks pointer reading logic with game memory!");
 
 } // namespace AutomataMod

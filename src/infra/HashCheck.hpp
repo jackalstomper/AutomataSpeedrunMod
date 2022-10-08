@@ -7,19 +7,19 @@ namespace AutomataMod {
 enum NierVersion { NIERVER_UNKNOWN, NIERVER_101, NIERVER_102, NIERVER_102_UNPACKED, NIERVER_WINSTORE, NIERVER_DEBUG };
 
 class NierVerisonInfo {
-  NierVersion m_version;
-  std::string_view m_versionName;
+	NierVersion m_version;
+	std::string_view m_versionName;
 
 public:
-  NierVerisonInfo();
+	NierVerisonInfo();
 
-  NierVerisonInfo(NierVersion version, std::string_view verisonName);
+	NierVerisonInfo(NierVersion version, std::string_view verisonName);
 
-  NierVersion version() const;
+	NierVersion version() const;
 
-  std::string_view versionName() const;
+	std::string_view versionName() const;
 
-  bool operator==(NierVersion other) const;
+	bool operator==(NierVersion other) const;
 };
 
 // Author: Martino
