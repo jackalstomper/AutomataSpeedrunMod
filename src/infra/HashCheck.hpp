@@ -22,14 +22,6 @@ public:
 	bool operator==(NierVersion other) const;
 };
 
-// Author: Martino
-/// <summary>
-/// Hashes the file of the currently loaded NieR:Automata binary (SHA-256)
-/// </summary>
-/// <throws>Throws std::runtime_error on any failure condition</throws>
-/// <returns>The calculated SHA256 hash of the automata executable</returns>
-std::string QueryhNierBinaryHash();
-
 /// Author: Martino
 /// <summary>
 /// Queries the currently loaded NieR:Automata binary version

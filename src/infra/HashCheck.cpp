@@ -73,21 +73,6 @@ std::vector<uint8_t> readFile(const std::string &fileName) {
 	return fileBuff;
 }
 
-} // namespace
-
-namespace AutomataMod {
-
-NierVerisonInfo::NierVerisonInfo() : m_version(NIERVER_UNKNOWN), m_versionName("NieR:Automata (Unknown)") {}
-
-NierVerisonInfo::NierVerisonInfo(NierVersion version, std::string_view verisonName)
-		: m_version(version), m_versionName(verisonName) {}
-
-NierVersion NierVerisonInfo::version() const { return m_version; }
-
-std::string_view NierVerisonInfo::versionName() const { return m_versionName; }
-
-bool NierVerisonInfo::operator==(NierVersion other) const { return m_version == other; }
-
 std::string QueryhNierBinaryHash() {
 	std::string fileName = getNierFileName();
 	std::vector<uint8_t> fileBuff = readFile(fileName);
@@ -107,6 +92,21 @@ std::string QueryhNierBinaryHash() {
 
 	return std::string(hash.begin(), hash.end());
 }
+
+} // namespace
+
+namespace AutomataMod {
+
+NierVerisonInfo::NierVerisonInfo() : m_version(NIERVER_UNKNOWN), m_versionName("NieR:Automata (Unknown)") {}
+
+NierVerisonInfo::NierVerisonInfo(NierVersion version, std::string_view verisonName)
+		: m_version(version), m_versionName(verisonName) {}
+
+NierVersion NierVerisonInfo::version() const { return m_version; }
+
+std::string_view NierVerisonInfo::versionName() const { return m_versionName; }
+
+bool NierVerisonInfo::operator==(NierVersion other) const { return m_version == other; }
 
 NierVerisonInfo QueryNierBinaryVersion() {
 	// Query the nier binary hash
