@@ -1,5 +1,6 @@
 #pragma once
 
+#include <infra/defs.hpp>
 #include <algorithm>
 
 namespace AutomataMod {
@@ -8,19 +9,19 @@ namespace AutomataMod {
 // positive Y = move up
 // positive Z = move forward
 struct Vector3f {
-	float x;
-	float y;
-	float z;
+	f32 x;
+	f32 y;
+	f32 z;
 
-	Vector3f(float x, float y, float z);
+	Vector3f(f32 x, f32 y, f32 z);
 };
 
 struct Volume {
-	float minX, maxX;
-	float minY, maxY;
-	float minZ, maxZ;
+	f32 minX, maxX;
+	f32 minY, maxY;
+	f32 minZ, maxZ;
 
-	Volume(Vector3f root, float widthX, float heightY, float lengthZ);
+	Volume(Vector3f root, f32 widthX, f32 heightY, f32 lengthZ);
 
 	// Returns true if the given point is inside this volume
 	bool contains(const Vector3f &p) const;

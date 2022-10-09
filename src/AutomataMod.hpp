@@ -8,41 +8,41 @@
 #include "com/FactoryWrapper.hpp"
 #include "infra/ModConfig.hpp"
 #include "infra/Util.hpp"
+#include "infra/defs.hpp"
 
 namespace AutomataMod {
 
 class ModChecker {
-	ModConfig m_modConfig;
-	InventoryManager m_inventoryManager;
-	ChipManager m_chipManager;
-	Volume m_mackerelVolume;
+	Addresses _addresses;
+	Inventory::Manager _inventoryManager;
+	Chips::Manager _chipManager;
+	Volume _mackerelVolume;
 
-	char *m_currentPhase;
-	uint32_t *m_playerNameSet;
-	uint64_t *m_playerLocationPtr;
-	uint32_t *m_isWorldLoaded;
-	uint32_t *m_isLoading;
+	bool _inventoryModded;
+	bool _fishAdded;
+	bool _dvdModeEnabled;
+	bool _tauntChipsAdded;
 
-	// Unit data is a collection of 8 bit bitmasks that indicate if a player has killed a unit or not.
-	// Use these flags to determine if player has killed a small flyer in the correct phase to give taunt chips
-	// buffer size: 24 bytes
-	uint8_t *m_unitDataFlags;
+	u32 *_worldLoaded;
+	u32 *_playerNameSet;
+	char *_currentPhase;
+	u8 *_unitData;
+	bool *_isLoading;
 
-	bool m_inventoryModded;
-	bool m_fishAdded;
-	bool m_dvdModeEnabled;
-	bool m_tauntChipsAdded;
+	/// @brief Checks if game is in the given phase
+	/// @param str The phase to check
+	/// @return true if game is set in the given phase
+	bool inPhase(const char *phase);
 
 	void modifyChipInventory();
-
-	void addInventory(uint32_t itemId, uint32_t quantity);
-
+	void addInventory(u32 itemId, u32 quantity);
 	void setVc3Inventory();
-
 	bool adjustFishInventory(bool shouldDeleteFish);
 
+	template <typename T> T *getOffset(u64 offset) { return reinterpret_cast<T *>(_addresses.ramStart + offset); }
+
 public:
-	ModChecker(uint64_t processRamStart, ModConfig &&modConfig);
+	ModChecker(Addresses addrs);
 	void checkStuff(Microsoft::WRL::ComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper);
 };
 

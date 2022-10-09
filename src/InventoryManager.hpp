@@ -1,45 +1,46 @@
 #pragma once
 
 #include "infra/PointerIterator.hpp"
+#include "infra/defs.hpp"
 #include <cstdint>
 #include <vector>
 
 namespace AutomataMod {
 
-struct InventoryItem {
-	uint32_t itemId;
-	uint32_t unknown;
-	uint32_t quantity;
+namespace Inventory {
+
+extern const u32 SEVERED_CABLE_ID;
+extern const u32 DENTED_PLATE_ID;
+extern const u32 EMPTY_SLOT_ID;
+
+extern const u32 FISH_AROWANA_ID;
+extern const u32 FISH_MACKEREL_ID;
+extern const u32 FISH_BROKEN_FIREARM_ID;
+extern const u32 MAX_SLOT_COUNT; // the total number of inventory slots the game supports
+
+struct Item {
+	u32 itemId;
+	u32 unknown;
+	u32 quantity;
 
 	void reset();
 };
 
-class InventoryManager {
-public:
-	static const uint32_t SEVERED_CABLE_ID;
-	static const uint32_t DENTED_PLATE_ID;
-	static const uint32_t EMPTY_SLOT_ID;
-
-	static const uint32_t FISH_AROWANA_ID;
-	static const uint32_t FISH_MACKEREL_ID;
-	static const uint32_t FISH_BROKEN_FIREARM_ID;
-
-	using Iterator = PointerIterator<InventoryItem>;
-
-private:
-	InventoryItem *const _firstSlot; // The memory address that the item table starts at
-	static const int MAX_SLOT_COUNT; // the total number of inventory slots the game supports
+class Manager {
+	Item *_firstSlot; // The memory address that the item table starts at
 
 public:
-	InventoryManager(uint64_t itemTableRamStart);
+	using Iterator = PointerIterator<Item>;
+	Manager();
+	Manager(Item *itemTableStart);
 
 	// Returns the slot for the given index, or nullptr if not found
-	Iterator getItemSlotById(uint32_t itemId);
+	Iterator getItemSlotById(u32 itemId);
 
 	// Returns all items that match the given item ID range (inclusive)
-	std::vector<Iterator> getAllItemsByRange(uint32_t itemIdStart, uint32_t itemIdEnd);
+	std::vector<Iterator> getAllItemsByRange(u32 itemIdStart, u32 itemIdEnd);
 
-	void addItem(const InventoryItem &slot);
+	void addItem(const Item &slot);
 
 	void removeItem(Iterator slot);
 
@@ -47,5 +48,7 @@ public:
 
 	Iterator end();
 };
+
+} // namespace Inventory
 
 } // namespace AutomataMod

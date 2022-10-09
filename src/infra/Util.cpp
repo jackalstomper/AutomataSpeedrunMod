@@ -2,9 +2,9 @@
 
 namespace AutomataMod {
 
-Vector3f::Vector3f(float x, float y, float z) : x(x), y(y), z(z) {}
+Vector3f::Vector3f(f32 x, f32 y, f32 z) : x(x), y(y), z(z) {}
 
-Volume::Volume(Vector3f root, float widthX, float heightY, float lengthZ) {
+Volume::Volume(Vector3f root, f32 widthX, f32 heightY, f32 lengthZ) {
 	Vector3f p2(root.x + widthX, root.y + heightY, root.z + lengthZ);
 	minX = std::min(root.x, p2.x);
 	maxX = std::max(root.x, p2.x);

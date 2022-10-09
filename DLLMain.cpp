@@ -64,7 +64,7 @@ void init() {
 	using namespace AutomataMod;
 
 	log(LogLevel::LOG_INFO, "Initializing AutomataMod v1.9");
-	uint64_t processRamStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
+	u64 processRamStartAddr = reinterpret_cast<u64>(GetModuleHandle(nullptr));
 	log(LogLevel::LOG_INFO, "Process ram start: 0x{:X}", processRamStartAddr);
 
 	NierVerisonInfo version;
@@ -77,9 +77,9 @@ void init() {
 
 	log(LogLevel::LOG_INFO, "Detected Nier version: {}", version.versionName());
 
-	ModConfig modConfig;
+	Addresses addresses;
+	addresses.ramStart = processRamStartAddr;
 	if (version == NierVersion::NIERVER_102 || version == NierVersion::NIERVER_102_UNPACKED) {
-		Addresses addresses;
 		addresses.currentPhase = 0xF64B10;
 		addresses.isWorldLoaded = 0xF6E240;
 		addresses.playerSetName = 0x124DE4C;
@@ -88,15 +88,14 @@ void init() {
 		addresses.chipTableStart = 0x148E410;
 		addresses.playerLocation = 0x12553E0;
 		addresses.unitData = 0x14944C8;
-		modConfig.setAddresses(std::move(addresses));
 	} else {
 		log(LogLevel::LOG_ERROR, "Unsupported Nier version: {}", version.versionName());
 		return;
 	}
 
-	modChecker = std::make_unique<ModChecker>(processRamStartAddr, std::move(modConfig));
+	modChecker = std::make_unique<ModChecker>(addresses);
 
-	checkerThread = std::unique_ptr<std::thread>(new std::thread([processRamStartAddr]() {
+	checkerThread = std::unique_ptr<std::thread>(new std::thread([]() {
 		while (!shouldStopChecker) {
 			if (modChecker && factory)
 				modChecker->checkStuff(factory.getComPtr());

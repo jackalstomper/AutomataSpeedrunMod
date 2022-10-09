@@ -1,5 +1,6 @@
 #pragma once
 
+#include "infra/defs.hpp"
 #include <Windows.h>
 #include <cstdint>
 
@@ -9,10 +10,9 @@ class IATHook {
 	PIMAGE_THUNK_DATA m_thunkIAT;
 	ULONGLONG m_originalFunction;
 
-	void parseImports(uint64_t baseAddress, const char *moduleName, const char *functionName,
-										LPCVOID replacementFunction);
+	void parseImports(u64 baseAddress, const char *moduleName, const char *functionName, LPCVOID replacementFunction);
 
-	void readImportDescriptor(IMAGE_IMPORT_DESCRIPTOR &importDescriptor, uint64_t baseAddress, const char *functionName,
+	void readImportDescriptor(IMAGE_IMPORT_DESCRIPTOR &importDescriptor, u64 baseAddress, const char *functionName,
 														LPCVOID replacementFunction);
 
 public:

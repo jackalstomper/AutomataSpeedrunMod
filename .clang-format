@@ -5,3 +5,5 @@ TabWidth: 2
 ColumnLimit: 120
 UseTab: Always
 UseCRLF: false
+PackConstructorInitializers: NextLine
+BreakConstructorInitializers: BeforeComma

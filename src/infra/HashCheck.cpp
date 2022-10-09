@@ -1,4 +1,5 @@
 #include "HashCheck.hpp"
+#include "infra/defs.hpp"
 
 #include <Windows.h>
 #include <bcrypt.h>
@@ -45,7 +46,7 @@ std::string getNierFileName() {
 	return std::string(pathBuffer.begin(), pathBuffer.end());
 }
 
-std::vector<uint8_t> readFile(const std::string &fileName) {
+std::vector<u8> readFile(const std::string &fileName) {
 	// Query a file handle to the nier binary
 	HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
 														FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -55,11 +56,11 @@ std::vector<uint8_t> readFile(const std::string &fileName) {
 		throw std::runtime_error("Attempted to load invalid executuable file for hash check");
 
 	// Query the file size of the nier binary
-	uint32_t fileSize = GetFileSize(hFile, nullptr);
-	uint32_t bytesRead;
+	u32 fileSize = GetFileSize(hFile, nullptr);
+	u32 bytesRead;
 
 	// Allocate the memory for the nier binary
-	std::vector<uint8_t> fileBuff(fileSize);
+	std::vector<u8> fileBuff(fileSize);
 
 	// Read the binary file
 	ReadFile(hFile, fileBuff.data(), fileBuff.size(), (PDWORD)&bytesRead, nullptr);
@@ -75,19 +76,19 @@ std::vector<uint8_t> readFile(const std::string &fileName) {
 
 std::string QueryhNierBinaryHash() {
 	std::string fileName = getNierFileName();
-	std::vector<uint8_t> fileBuff = readFile(fileName);
+	std::vector<u8> fileBuff = readFile(fileName);
 
 	// Query the hash length
-	uint32_t hashSize;
-	uint32_t hashLengthSize;
+	u32 hashSize;
+	u32 hashLengthSize;
 	NTSTATUS status = BCryptGetProperty(BCRYPT_SHA256_ALG_HANDLE, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&hashSize),
-																			sizeof(uint32_t), reinterpret_cast<PULONG>(&hashLengthSize), 0);
+																			sizeof(u32), reinterpret_cast<PULONG>(&hashLengthSize), 0);
 
 	if (!SUCCEEDED(status)) {
 		throw std::runtime_error("Failed to calculate hash for executable");
 	}
 
-	std::vector<uint8_t> hash(hashSize);
+	std::vector<u8> hash(hashSize);
 	status = BCryptHash(BCRYPT_SHA256_ALG_HANDLE, nullptr, 0, fileBuff.data(), fileBuff.size(), hash.data(), hash.size());
 
 	return std::string(hash.begin(), hash.end());
