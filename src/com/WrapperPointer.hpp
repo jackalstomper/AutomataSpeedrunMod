@@ -32,11 +32,6 @@ public:
 		return *this;
 	}
 
-	WrapperPointer &operator=(WrapperPointer other) {
-		swap(*this, other);
-		return *this;
-	}
-
 	Microsoft::WRL::ComPtr<T> getComPtr() const {
 		Microsoft::WRL::ComPtr<T> p = _comPtr;
 		return p;
@@ -46,7 +41,7 @@ public:
 	T *operator->() const { return _obj.get(); }
 	T *get() const { return _comPtr.Get(); }
 
-	void swap(WrapperPointer &l, WrapperPointer &r) {
+	friend void swap(WrapperPointer &l, WrapperPointer &r) {
 		std::swap(l._comPtr, r._comPtr);
 		std::swap(l._obj, r._obj);
 	}
