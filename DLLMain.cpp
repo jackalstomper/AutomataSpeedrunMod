@@ -83,7 +83,7 @@ void init() {
 		addresses.currentPhase = 0xF64B10;
 		addresses.isWorldLoaded = 0xF6E240;
 		addresses.playerSetName = 0x124DE4C;
-		addresses.isLoading = 0x100D410;
+		addresses.isLoading = 0x14005F4;
 		addresses.itemTableStart = 0x148C4C4;
 		addresses.chipTableStart = 0x148E410;
 		addresses.playerLocation = 0x12553E0;
