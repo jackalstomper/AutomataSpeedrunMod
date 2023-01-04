@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <Xinput.h>
 #include <bcrypt.h>
 #include <d3d11.h>
 #include <dxgi1_2.h>
@@ -18,21 +19,25 @@
 #include "infra/Log.hpp"
 #include "infra/ModConfig.hpp"
 
+using namespace AutomataMod;
+
+namespace {
+
+WORD lastXInputButtons = 0;
 std::unique_ptr<DLLHook> xinput;
 std::unique_ptr<std::thread> checkerThread;
 std::unique_ptr<IAT::IATHook> d3dCreateDeviceHook;
 std::unique_ptr<IAT::IATHook> dxgiCreateFactoryHook;
-std::unique_ptr<AutomataMod::ModChecker> modChecker;
+std::unique_ptr<ModChecker> modChecker;
 WrapperPointer<DxWrappers::DXGIFactoryWrapper> factory;
 bool shouldStopChecker = false;
 
 // Need to intercept the DXGI factory to return our wrapper of it
 HRESULT WINAPI CreateDXGIFactoryHooked(REFIID riid, void **ppFactory) {
-	AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "CreateDXGIFactory called");
+	log(LogLevel::LOG_INFO, "CreateDXGIFactory called");
 
 	if (riid != __uuidof(IDXGIFactory2)) {
-		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Unknown IDXGIFactory being used by automata. This will "
-																											 "probably crash.");
+		log(LogLevel::LOG_ERROR, "Unknown IDXGIFactory being used by automata. This will probably crash.");
 	}
 
 	Microsoft::WRL::ComPtr<IDXGIFactory2> pf;
@@ -41,23 +46,26 @@ HRESULT WINAPI CreateDXGIFactoryHooked(REFIID riid, void **ppFactory) {
 		factory = new DxWrappers::DXGIFactoryWrapper(pf);
 		factory->AddRef();
 		(*(IDXGIFactory2 **)ppFactory) = factory.get();
-		AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Created DXGIFactoryWrapper");
+		log(LogLevel::LOG_INFO, "Created DXGIFactoryWrapper");
 	} else {
-		AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Failed to create DXGIFactoryWrapper.");
+		log(LogLevel::LOG_INFO, "Failed to create DXGIFactoryWrapper.");
 	}
 
 	return facResult;
 }
 
 // need to intercept the D3D11 create device call to add D2D support
-HRESULT WINAPI D3D11CreateDeviceHooked(IDXGIAdapter *pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags,
-																			 const D3D_FEATURE_LEVEL *pFeatureLevels, UINT FeatureLevels, UINT SDKVersion,
-																			 ID3D11Device **ppDevice, D3D_FEATURE_LEVEL *pFeatureLevel,
-																			 ID3D11DeviceContext **ppImmediateContext) {
+HRESULT WINAPI D3D11CreateDeviceHooked(
+		IDXGIAdapter *pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags,
+		const D3D_FEATURE_LEVEL *pFeatureLevels, UINT FeatureLevels, UINT SDKVersion, ID3D11Device **ppDevice,
+		D3D_FEATURE_LEVEL *pFeatureLevel, ID3D11DeviceContext **ppImmediateContext
+) {
 	Flags |= D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-	return D3D11CreateDevice(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, ppDevice,
-													 pFeatureLevel, ppImmediateContext);
+	return D3D11CreateDevice(
+			pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, ppDevice, pFeatureLevel,
+			ppImmediateContext
+	);
 }
 
 void init() {
@@ -88,6 +96,7 @@ void init() {
 		addresses.chipTableStart = 0x148E410;
 		addresses.playerLocation = 0x12553E0;
 		addresses.unitData = 0x14944C8;
+		addresses.windowMode = 0x1421F38;
 	} else {
 		log(LogLevel::LOG_ERROR, "Unsupported Nier version: {}", version.versionName());
 		return;
@@ -109,8 +118,8 @@ template <typename FuncPtr> FuncPtr hookFunc(const std::string &funcName) {
 	if (!xinput) {
 		xinput = std::unique_ptr<DLLHook>(new DLLHook("xinput1_4.dll"));
 		if (!xinput->isModuleFound()) {
-			AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to load xinput1_4.dll. VC3 Mod and Automata "
-																												 "will probably crash now.");
+			log(LogLevel::LOG_ERROR, "Failed to load xinput1_4.dll. VC3 Mod and Automata "
+															 "will probably crash now.");
 			return nullptr;
 		}
 	}
@@ -118,14 +127,18 @@ template <typename FuncPtr> FuncPtr hookFunc(const std::string &funcName) {
 	return xinput->hookFunc<FuncPtr>(funcName);
 }
 
+} // namespace
+
 extern "C" {
 
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		d3dCreateDeviceHook = std::unique_ptr<IAT::IATHook>(
-				new IAT::IATHook("d3d11.dll", "D3D11CreateDevice", (LPCVOID)D3D11CreateDeviceHooked));
+				new IAT::IATHook("d3d11.dll", "D3D11CreateDevice", (LPCVOID)D3D11CreateDeviceHooked)
+		);
 		dxgiCreateFactoryHook = std::unique_ptr<IAT::IATHook>(
-				new IAT::IATHook("dxgi.dll", "CreateDXGIFactory", (LPCVOID)CreateDXGIFactoryHooked));
+				new IAT::IATHook("dxgi.dll", "CreateDXGIFactory", (LPCVOID)CreateDXGIFactoryHooked)
+		);
 		shouldStopChecker = false;
 		init();
 	} else if (reason == DLL_PROCESS_DETACH) {
@@ -151,56 +164,71 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
 	return TRUE;
 }
 
-void WINAPI XInputEnable(BOOL enable) {
+void WINAPI XInputEnable(_In_ BOOL enable) WIN_NOEXCEPT {
 	static auto ptr = hookFunc<void(WINAPI *)(BOOL)>("XInputEnable");
 	if (!ptr)
 		return;
 	ptr(enable);
 }
 
-DWORD WINAPI XInputGetAudioDeviceIds(DWORD dwUserIndex, LPWSTR pRenderDeviceId, UINT *pRenderCount,
-																		 LPWSTR pCaptureDeviceId, UINT *pCaptureCount) {
+DWORD WINAPI XInputGetAudioDeviceIds(
+		_In_ DWORD dwUserIndex, _Out_writes_opt_(*pRenderCount) LPWSTR pRenderDeviceId, _Inout_opt_ UINT *pRenderCount,
+		_Out_writes_opt_(*pCaptureCount) LPWSTR pCaptureDeviceId, _Inout_opt_ UINT *pCaptureCount
+) WIN_NOEXCEPT {
 	static auto ptr = hookFunc<DWORD(WINAPI *)(DWORD, LPWSTR, UINT *, LPWSTR, UINT *)>("XInputGetAudioDeviceIds");
 	if (!ptr)
 		return ERROR_DEVICE_NOT_CONNECTED;
 	return ptr(dwUserIndex, pRenderDeviceId, pRenderCount, pCaptureDeviceId, pCaptureCount);
 }
 
-struct XINPUT_BATTERY_INFORMATION;
-DWORD WINAPI XInputGetBatteryInformation(DWORD dwUserIndex, BYTE devType,
-																				 XINPUT_BATTERY_INFORMATION *pBatteryInformation) {
+DWORD WINAPI XInputGetBatteryInformation(
+		_In_ DWORD dwUserIndex, _In_ BYTE devType, _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation
+) WIN_NOEXCEPT {
 	static auto ptr = hookFunc<DWORD(WINAPI *)(DWORD, BYTE, XINPUT_BATTERY_INFORMATION *)>("XInputGetBatteryInformation");
 	if (!ptr)
 		return ERROR_DEVICE_NOT_CONNECTED;
 	return ptr(dwUserIndex, devType, pBatteryInformation);
 }
 
-struct XINPUT_CAPABILITIES;
-DWORD WINAPI XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags, XINPUT_CAPABILITIES *pCapabilities) {
+DWORD WINAPI XInputGetCapabilities(_In_ DWORD dwUserIndex, _In_ DWORD dwFlags, _Out_ XINPUT_CAPABILITIES *pCapabilities)
+		WIN_NOEXCEPT {
 	static auto ptr = hookFunc<DWORD(WINAPI *)(DWORD, DWORD, XINPUT_CAPABILITIES *)>("XInputGetCapabilities");
 	if (!ptr)
 		return ERROR_DEVICE_NOT_CONNECTED;
 	return ptr(dwUserIndex, dwFlags, pCapabilities);
 }
 
-struct XINPUT_KEYSTROKE;
-DWORD WINAPI XInputGetKeystroke(DWORD dwUserIndex, DWORD dwReserved, XINPUT_KEYSTROKE *pKeystroke) {
+DWORD WINAPI XInputGetKeystroke(_In_ DWORD dwUserIndex, _Reserved_ DWORD dwReserved, _Out_ PXINPUT_KEYSTROKE pKeystroke)
+		WIN_NOEXCEPT {
 	static auto ptr = hookFunc<DWORD(WINAPI *)(DWORD, DWORD, XINPUT_KEYSTROKE *)>("XInputGetKeystroke");
 	if (!ptr)
 		return ERROR_DEVICE_NOT_CONNECTED;
 	return ptr(dwUserIndex, dwReserved, pKeystroke);
 }
 
-struct XINPUT_STATE;
-DWORD WINAPI XInputGetState(DWORD dwUserIndex, XINPUT_STATE *pState) {
+DWORD WINAPI XInputGetState(_In_ DWORD dwUserIndex, _Out_ XINPUT_STATE *pState) WIN_NOEXCEPT {
 	static auto ptr = hookFunc<DWORD(WINAPI *)(DWORD, XINPUT_STATE *)>("XInputGetState");
 	if (!ptr)
 		return ERROR_DEVICE_NOT_CONNECTED;
-	return ptr(dwUserIndex, pState);
+
+	DWORD result = ptr(dwUserIndex, pState);
+
+	// Check for mod toggle button combo
+	if (result == ERROR_SUCCESS && dwUserIndex == 0 && modChecker && pState && !modChecker->validCheckState()) {
+		// check if new state diff from last state
+		if (pState->Gamepad.wButtons != lastXInputButtons) {
+			WORD x = pState->Gamepad.wButtons & XINPUT_GAMEPAD_X;
+			WORD y = pState->Gamepad.wButtons & XINPUT_GAMEPAD_Y;
+			if (x && y)
+				modChecker->setModActive(!modChecker->getModActive());
+			lastXInputButtons = pState->Gamepad.wButtons;
+		}
+	}
+
+	return result;
 }
 
-struct XINPUT_VIBRATION;
-DWORD WINAPI XInputSetState(DWORD dwUserIndex, XINPUT_VIBRATION *pVibration) {
+DWORD WINAPI XInputSetState(_In_ DWORD dwUserIndex, _In_ XINPUT_VIBRATION *pVibration) WIN_NOEXCEPT {
 	static auto ptr = hookFunc<DWORD(WINAPI *)(DWORD, XINPUT_VIBRATION *)>("XInputSetState");
 	if (!ptr)
 		return ERROR_DEVICE_NOT_CONNECTED;

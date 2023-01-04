@@ -28,6 +28,12 @@ class ModChecker {
 	char *_currentPhase;
 	u8 *_unitData;
 	bool *_isLoading;
+	u32 *_windowMode;
+	u32 _lastWindowMode;
+	bool _modActive;
+	bool _lastModActive;
+	bool _inMenu;
+	bool _lastInMenu;
 
 	/// @brief Checks if game is in the given phase
 	/// @param str The phase to check
@@ -44,6 +50,12 @@ class ModChecker {
 public:
 	ModChecker(Addresses addrs);
 	void checkStuff(Microsoft::WRL::ComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper);
+
+	// Returns true if the game is in a state for modding inventory
+	bool validCheckState();
+
+	bool getModActive() const;
+	void setModActive(bool active);
 };
 
 } // namespace AutomataMod

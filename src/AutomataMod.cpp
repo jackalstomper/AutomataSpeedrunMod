@@ -95,26 +95,51 @@ ModChecker::ModChecker(Addresses addrs)
 		, _playerNameSet(getOffset<u32>(_addresses.playerSetName))
 		, _currentPhase(getOffset<char>(_addresses.currentPhase))
 		, _unitData(getOffset<u8>(_addresses.unitData))
-		, _isLoading(getOffset<bool>(_addresses.isLoading)) {}
+		, _isLoading(getOffset<bool>(_addresses.isLoading))
+		, _windowMode(getOffset<u32>(_addresses.windowMode))
+		, _lastWindowMode(0)
+		, _modActive(true)
+		, _lastModActive(true)
+		, _inMenu(true)
+		, _lastInMenu(true) {}
 
 void ModChecker::checkStuff(Microsoft::WRL::ComPtr<DxWrappers::DXGIFactoryWrapper> factoryWrapper) {
+	if (_lastWindowMode != *_windowMode) {
+		factoryWrapper->setWindowMode(*_windowMode);
+		_lastWindowMode = *_windowMode;
+	}
+
+	if (_lastModActive != _modActive) {
+		factoryWrapper->setModActive(_modActive);
+		_lastModActive = _modActive;
+	}
+
+	if (_lastInMenu != _inMenu) {
+		factoryWrapper->setInMenu(_inMenu);
+		_lastInMenu = _inMenu;
+	}
+
 	if (*_worldLoaded == 1 && *_playerNameSet == 1) {
-		if (!_inventoryModded && inPhase("58_AB_BossArea_Fall")) {
-			log(LogLevel::LOG_INFO, "Detected we are in 58_AB_BossArea_Fall. Giving VC3 inventory");
-			setVc3Inventory();
-			_inventoryModded = true;
-		} else if (!_tauntChipsAdded && (_unitData[7] & 2) && inPhase("52_AB_Danchi_Haikyo")) {
-			log(LogLevel::LOG_INFO,
-					"Detected we are in 52_AB_Danchi_Haikyo and player has killed a small desert flyer. Adding Taunt+2 chips.");
-			modifyChipInventory();
-			_tauntChipsAdded = true;
-		} else if (!_fishAdded && inPhase("00_60_A_RobotM_Pro_Tutorial")) {
-			Vector3f *playerLocation = getOffset<Vector3f>(_addresses.playerLocation);
-			_fishAdded = adjustFishInventory(!_mackerelVolume.contains(*playerLocation));
+		_inMenu = false;
+		if (_modActive) {
+			if (!_inventoryModded && inPhase("58_AB_BossArea_Fall")) {
+				log(LogLevel::LOG_INFO, "Detected we are in 58_AB_BossArea_Fall. Giving VC3 inventory");
+				setVc3Inventory();
+				_inventoryModded = true;
+			} else if (!_tauntChipsAdded && (_unitData[7] & 2) && inPhase("52_AB_Danchi_Haikyo")) {
+				log(LogLevel::LOG_INFO,
+						"Detected we are in 52_AB_Danchi_Haikyo and player has killed a small desert flyer. Adding Taunt+2 chips.");
+				modifyChipInventory();
+				_tauntChipsAdded = true;
+			} else if (!_fishAdded && inPhase("00_60_A_RobotM_Pro_Tutorial")) {
+				Vector3f *playerLocation = getOffset<Vector3f>(_addresses.playerLocation);
+				_fishAdded = adjustFishInventory(!_mackerelVolume.contains(*playerLocation));
+			}
 		}
 	}
 
 	if (*_worldLoaded == 0 && *_playerNameSet == 0) {
+		_inMenu = true;
 		if (_inventoryModded || _tauntChipsAdded || _fishAdded) {
 			log(LogLevel::LOG_INFO, "Detected the run has been reset. Resetting inventory checker.");
 			log(LogLevel::LOG_INFO, "-------------------------------------------------------------------------------");
@@ -133,6 +158,19 @@ void ModChecker::checkStuff(Microsoft::WRL::ComPtr<DxWrappers::DXGIFactoryWrappe
 		factoryWrapper->toggleDvdMode(false);
 		_dvdModeEnabled = false;
 	}
+}
+
+bool ModChecker::validCheckState() { return *_worldLoaded == 1 && *_playerNameSet == 1; }
+
+bool ModChecker::getModActive() const { return _modActive; }
+
+void ModChecker::setModActive(bool active) {
+	if (!active) {
+		log(LogLevel::LOG_INFO, "Mod disabled by user input.");
+	} else {
+		log(LogLevel::LOG_INFO, "Mod enabled by user input.");
+	}
+	_modActive = active;
 }
 
 } // namespace AutomataMod

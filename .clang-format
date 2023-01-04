@@ -7,3 +7,4 @@ UseTab: Always
 UseCRLF: false
 PackConstructorInitializers: NextLine
 BreakConstructorInitializers: BeforeComma
+AlignAfterOpenBracket: BlockIndent

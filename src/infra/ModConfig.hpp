@@ -14,6 +14,7 @@ struct Addresses {
 	u64 chipTableStart;
 	u64 playerLocation;
 	u64 unitData;
+	u64 windowMode;
 };
 
 } // namespace AutomataMod

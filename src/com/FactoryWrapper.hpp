@@ -14,15 +14,18 @@ namespace DxWrappers {
 using namespace Microsoft::WRL;
 
 class DXGIFactoryWrapper : public IDXGIFactory2 {
-	RefCounter m_refCounter;
-	ComPtr<IDXGIFactory2> m_target;
-	ComPtr<ID2D1Factory2> m_D2DFactory;
-	WrapperPointer<DXGISwapChainWrapper> m_currentSwapChain;
+	RefCounter _refCounter;
+	ComPtr<IDXGIFactory2> _target;
+	ComPtr<ID2D1Factory2> _D2DFactory;
+	WrapperPointer<DXGISwapChainWrapper> _currentSwapChain;
 
 public:
 	DXGIFactoryWrapper(ComPtr<IDXGIFactory2> target);
 	virtual ~DXGIFactoryWrapper();
 	void toggleDvdMode(bool enabled);
+	void setWindowMode(int mode);
+	void setModActive(bool active);
+	void setInMenu(bool inMenu);
 
 	virtual HRESULT __stdcall QueryInterface(REFIID riid, void **ppvObject) override;
 	virtual ULONG __stdcall AddRef(void) override;
