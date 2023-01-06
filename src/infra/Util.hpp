@@ -1,7 +1,7 @@
 #pragma once
 
-#include <infra/defs.hpp>
 #include <algorithm>
+#include <infra/defs.hpp>
 
 namespace AutomataMod {
 

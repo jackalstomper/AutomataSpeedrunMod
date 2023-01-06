@@ -48,8 +48,9 @@ std::string getNierFileName() {
 
 std::vector<u8> readFile(const std::string &fileName) {
 	// Query a file handle to the nier binary
-	HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
-														FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE hFile = CreateFile(
+			fileName.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr
+	);
 
 	// If the handle is invalid, bail
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -81,8 +82,10 @@ std::string QueryhNierBinaryHash() {
 	// Query the hash length
 	u32 hashSize;
 	u32 hashLengthSize;
-	NTSTATUS status = BCryptGetProperty(BCRYPT_SHA256_ALG_HANDLE, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&hashSize),
-																			sizeof(u32), reinterpret_cast<PULONG>(&hashLengthSize), 0);
+	NTSTATUS status = BCryptGetProperty(
+			BCRYPT_SHA256_ALG_HANDLE, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&hashSize), sizeof(u32),
+			reinterpret_cast<PULONG>(&hashLengthSize), 0
+	);
 
 	if (!SUCCEEDED(status)) {
 		throw std::runtime_error("Failed to calculate hash for executable");

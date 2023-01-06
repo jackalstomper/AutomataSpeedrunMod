@@ -15,8 +15,9 @@ DLLHook::DLLHook(const std::string &moduleName) {
 
 	if (len == 0) {
 		// failed to get system directory
-		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get windows system directory. Error code: {}",
-										 GetLastError());
+		AutomataMod::log(
+				AutomataMod::LogLevel::LOG_ERROR, "Failed to get windows system directory. Error code: {}", GetLastError()
+		);
 		return;
 	}
 

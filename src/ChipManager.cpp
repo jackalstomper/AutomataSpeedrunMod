@@ -35,8 +35,9 @@ Manager::Iterator Manager::begin() { return Iterator(_firstChip); }
 Manager::Iterator Manager::end() { return Iterator(_firstChip + MAX_SLOT_COUNT); }
 
 static_assert(std::is_trivially_copyable<Slot>::value, "ChipSlot must be POD");
-static_assert(sizeof(Slot) == 48,
-							"ChipSlot isn't 48 bytes in size! This breaks pointer reading logic with game memory!");
+static_assert(
+		sizeof(Slot) == 48, "ChipSlot isn't 48 bytes in size! This breaks pointer reading logic with game memory!"
+);
 
 } // namespace Chips
 

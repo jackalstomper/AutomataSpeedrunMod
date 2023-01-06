@@ -16,11 +16,11 @@ extern const u32 MAX_SLOT_COUNT; // total amount of chips that can be stored on 
 
 struct Slot {
 	u32 unknown0; // starts at 0, changes based on chip in unknown ways...
-	u32 id;			 // starts at 3001, increments for every chip + all their supported levels
+	u32 id;				// starts at 3001, increments for every chip + all their supported levels
 
 	u32 chipIndex; // an index for each type of chip there is in the game (not including +1/2/3)
 	u32 chipLevel; // The chip boost level (+0, +1, +2, etc)
-	u32 slotCost;	// Amount of slots the chip takes up in a set
+	u32 slotCost;	 // Amount of slots the chip takes up in a set
 
 	// position of the chip in the chip sets. Set to 0xFFFFFFFF to not assign to set
 	u32 setAPos;

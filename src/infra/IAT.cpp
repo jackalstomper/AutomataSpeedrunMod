@@ -21,8 +21,9 @@ IATHook::~IATHook() {
 	m_originalFunction = 0;
 }
 
-void IATHook::parseImports(u64 baseAddress, const char *moduleName, const char *functionName,
-													 LPCVOID replacementFunction) {
+void IATHook::parseImports(
+		u64 baseAddress, const char *moduleName, const char *functionName, LPCVOID replacementFunction
+) {
 	PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)baseAddress;
 	if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
 		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to parse dos header");
@@ -41,9 +42,8 @@ void IATHook::parseImports(u64 baseAddress, const char *moduleName, const char *
 		return;
 	}
 
-	PIMAGE_IMPORT_DESCRIPTOR importDescriptor =
-			(PIMAGE_IMPORT_DESCRIPTOR)(baseAddress +
-																 optionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+	PIMAGE_IMPORT_DESCRIPTOR importDescriptor = (PIMAGE_IMPORT_DESCRIPTOR
+	)(baseAddress + optionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
 	for (s32 i = 0; importDescriptor[i].Characteristics != 0; ++i) {
 		PCHAR dllName = (PCHAR)(baseAddress + importDescriptor[i].Name);
 		if (dllName != nullptr) {
@@ -57,8 +57,9 @@ void IATHook::parseImports(u64 baseAddress, const char *moduleName, const char *
 	AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to hook {} from module {}", functionName, moduleName);
 }
 
-void IATHook::readImportDescriptor(IMAGE_IMPORT_DESCRIPTOR &importDescriptor, u64 baseAddress, const char *functionName,
-																	 LPCVOID replacementFunction) {
+void IATHook::readImportDescriptor(
+		IMAGE_IMPORT_DESCRIPTOR &importDescriptor, u64 baseAddress, const char *functionName, LPCVOID replacementFunction
+) {
 	if (importDescriptor.OriginalFirstThunk == 0) {
 		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get OriginalFirstThunk");
 		return;

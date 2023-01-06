@@ -12,8 +12,9 @@ class IATHook {
 
 	void parseImports(u64 baseAddress, const char *moduleName, const char *functionName, LPCVOID replacementFunction);
 
-	void readImportDescriptor(IMAGE_IMPORT_DESCRIPTOR &importDescriptor, u64 baseAddress, const char *functionName,
-														LPCVOID replacementFunction);
+	void readImportDescriptor(
+			IMAGE_IMPORT_DESCRIPTOR &importDescriptor, u64 baseAddress, const char *functionName, LPCVOID replacementFunction
+	);
 
 public:
 	IATHook(const char *moduleName, const char *functionName, LPCVOID replacementFunction);

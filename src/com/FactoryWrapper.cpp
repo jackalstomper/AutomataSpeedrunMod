@@ -6,8 +6,10 @@ namespace DxWrappers {
 DXGIFactoryWrapper::DXGIFactoryWrapper(ComPtr<IDXGIFactory2> target) {
 	_target = target;
 	D2D1_FACTORY_OPTIONS opt = {D2D1_DEBUG_LEVEL_ERROR};
-	HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory2), &opt,
-																 reinterpret_cast<void **>(_D2DFactory.GetAddressOf()));
+	HRESULT hr = D2D1CreateFactory(
+			D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory2), &opt,
+			reinterpret_cast<void **>(_D2DFactory.GetAddressOf())
+	);
 
 	if (!SUCCEEDED(hr))
 		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "D2D1CreateFactory failed with code {}", hr);
@@ -88,8 +90,9 @@ HRESULT __stdcall DXGIFactoryWrapper::GetWindowAssociation(HWND *pWindowHandle) 
 	return _target->GetWindowAssociation(pWindowHandle);
 }
 
-HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChain(IUnknown *pDevice, DXGI_SWAP_CHAIN_DESC *pDesc,
-																											IDXGISwapChain **ppSwapChain) {
+HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChain(
+		IUnknown *pDevice, DXGI_SWAP_CHAIN_DESC *pDesc, IDXGISwapChain **ppSwapChain
+) {
 	return _target->CreateSwapChain(pDevice, pDesc, ppSwapChain);
 }
 
@@ -105,15 +108,16 @@ BOOL __stdcall DXGIFactoryWrapper::IsCurrent() { return _target->IsCurrent(); }
 
 BOOL __stdcall DXGIFactoryWrapper::IsWindowedStereoEnabled() { return _target->IsWindowedStereoEnabled(); }
 
-HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForHwnd(IUnknown *pDevice, HWND hWnd,
-																														 const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-																														 const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
-																														 IDXGIOutput *pRestrictToOutput,
-																														 IDXGISwapChain1 **ppSwapChain) {
+HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForHwnd(
+		IUnknown *pDevice, HWND hWnd, const DXGI_SWAP_CHAIN_DESC1 *pDesc,
+		const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc, IDXGIOutput *pRestrictToOutput,
+		IDXGISwapChain1 **ppSwapChain
+) {
 	AutomataMod::log(AutomataMod::LogLevel::LOG_DEBUG, "CreateSwapChainForHwnd called");
 	ComPtr<IDXGISwapChain1> swapChain;
-	HRESULT result = _target->CreateSwapChainForHwnd(pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput,
-																									 swapChain.GetAddressOf());
+	HRESULT result = _target->CreateSwapChainForHwnd(
+			pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, swapChain.GetAddressOf()
+	);
 
 	if (!SUCCEEDED(result)) {
 		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to create swapchain in CreateSwapChainForHwnd");
@@ -127,10 +131,10 @@ HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForHwnd(IUnknown *pDevice, 
 	return result;
 }
 
-HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForCoreWindow(IUnknown *pDevice, IUnknown *pWindow,
-																																	 const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-																																	 IDXGIOutput *pRestrictToOutput,
-																																	 IDXGISwapChain1 **ppSwapChain) {
+HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForCoreWindow(
+		IUnknown *pDevice, IUnknown *pWindow, const DXGI_SWAP_CHAIN_DESC1 *pDesc, IDXGIOutput *pRestrictToOutput,
+		IDXGISwapChain1 **ppSwapChain
+) {
 	return _target->CreateSwapChainForCoreWindow(pDevice, pWindow, pDesc, pRestrictToOutput, ppSwapChain);
 }
 
@@ -160,10 +164,9 @@ void __stdcall DXGIFactoryWrapper::UnregisterOcclusionStatus(DWORD dwCookie) {
 	_target->UnregisterOcclusionStatus(dwCookie);
 }
 
-HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForComposition(IUnknown *pDevice,
-																																		const DXGI_SWAP_CHAIN_DESC1 *pDesc,
-																																		IDXGIOutput *pRestrictToOutput,
-																																		IDXGISwapChain1 **ppSwapChain) {
+HRESULT __stdcall DXGIFactoryWrapper::CreateSwapChainForComposition(
+		IUnknown *pDevice, const DXGI_SWAP_CHAIN_DESC1 *pDesc, IDXGIOutput *pRestrictToOutput, IDXGISwapChain1 **ppSwapChain
+) {
 	return _target->CreateSwapChainForComposition(pDevice, pDesc, pRestrictToOutput, ppSwapChain);
 }
 
