@@ -68,6 +68,42 @@ cd build
 cmake ..
 ```
 
+### Debugging
+With automata 1.02 the game will crash if a debugger is attached due to steam DRM.  
+In order to debug while developing the application will need to be unpacked with https://github.com/atom0s/Steamless
+
+The app needs an steam appid to function, these can be added using environment variables.  
+Example vscode launch configuration:
+```json
+{
+    "name": "Launch Automata",
+    "type": "cppvsdbg",
+    "request": "launch",
+    "program": "${env:NIER_DIR}\\NieRAutomata.exe.unpacked.exe",
+    "cwd": "${env:NIER_DIR}",
+    "symbolSearchPath": "${workspaceFolder}/build/Debug",
+    "args": [],
+    "environment": [
+        {
+            "name": "SteamGameId",
+            "value": "524220"
+        },
+        {
+            "name": "SteamAppId",
+            "value": "524220"
+        },
+        {
+            "name": "SteamOverlayGameId",
+            "value": "524220"
+        }
+    ],
+    "logging": {
+        "moduleLoad": true,
+        "trace": true
+    }
+}
+```
+
 ### Styling
 The project uses a slightly modified LLVM code style. The project is configured to use clang format for automated styling.  
 The styling configuration is located in `.clang-format`
