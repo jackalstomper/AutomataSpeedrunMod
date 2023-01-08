@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 
 namespace AutomataMod {
@@ -28,6 +29,6 @@ public:
 /// </summary>
 /// <throws>Throws std::runtime_error on any failure condition</throws>
 /// <returns>the binary version of the currently loaded NieR:Automata binary</returns>
-NierVerisonInfo QueryNierBinaryVersion();
+std::optional<NierVerisonInfo> QueryNierBinaryVersion();
 
 } // namespace AutomataMod

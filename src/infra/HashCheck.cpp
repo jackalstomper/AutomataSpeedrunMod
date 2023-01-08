@@ -1,6 +1,11 @@
 #include "HashCheck.hpp"
 #include "infra/defs.hpp"
 
+#ifdef _DEBUG
+#include "infra/Log.hpp"
+#include <fmt/format.h>
+#endif
+
 #include <Windows.h>
 #include <bcrypt.h>
 #include <stdexcept>
@@ -17,9 +22,6 @@ const std::unordered_map<std::string, NierVerisonInfo> VERSION_HASHES = {
 		{"\x51\x71\xbe\xd0\x9e\x6f\xec\x7b\x21\xbf\x0e\xa4\x79\xdb\xd2\xe1\xb2\x28\x69\x5c\x67\xd1\xf0\xb4\x78\x54\x9a\x9b"
 		 "\xe2\xf5\x72\x6a",
 		 {NierVersion::NIERVER_102, "NieR:Automata (v1.02)"}},
-		{"\x5f\x97\x20\xd8\xc7\x7c\xd5\x97\x8e\xfe\x49\x88\x89\x3a\xf8\xfd\x99\x9f\x90\xa4\x76\xa8\xde\xeb\xb3\x91\x26\x94"
-		 "\xf6\x18\xdc\x43",
-		 {NierVersion::NIERVER_102_UNPACKED, "NieR:Automata (v1.02 Unpacked)"}},
 		{"\x3d\xde\x56\x6c\xea\x3e\x3b\xc1\x5e\x45\x92\x66\x02\xfb\x4f\x24\xd4\x8f\x77\xdf\x8a\x7b\xc5\x50\xa5\xb2\xdc\xae"
 		 "\xcc\xcf\x09\x48",
 		 {NierVersion::NIERVER_WINSTORE, "NieR:Automata (Winstore)"}},
@@ -112,16 +114,25 @@ std::string_view NierVerisonInfo::versionName() const { return m_versionName; }
 
 bool NierVerisonInfo::operator==(NierVersion other) const { return m_version == other; }
 
-NierVerisonInfo QueryNierBinaryVersion() {
+std::optional<NierVerisonInfo> QueryNierBinaryVersion() {
 	// Query the nier binary hash
 	std::string exeHash = QueryhNierBinaryHash();
+
+#ifdef _DEBUG
+	std::string out;
+	for (char c : exeHash) {
+		out += fmt::format("\\x{:x}", (unsigned char)c);
+	}
+
+	AutomataMod::log(AutomataMod::LogLevel::LOG_DEBUG, "Nier version hash: {}", out);
+#endif
 
 	auto it = VERSION_HASHES.find(exeHash);
 	if (it != VERSION_HASHES.end()) {
 		return it->second;
 	}
 
-	throw std::runtime_error("Failed to determine Nier verison from executable");
+	return {};
 }
 
 } // namespace AutomataMod

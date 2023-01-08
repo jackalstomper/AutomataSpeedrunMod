@@ -75,7 +75,7 @@ void init() {
 	u64 processRamStartAddr = reinterpret_cast<u64>(GetModuleHandle(nullptr));
 	log(LogLevel::LOG_INFO, "Process ram start: 0x{:X}", processRamStartAddr);
 
-	NierVerisonInfo version;
+	std::optional<NierVerisonInfo> version;
 	try {
 		version = QueryNierBinaryVersion();
 	} catch (const std::runtime_error &e) {
@@ -83,11 +83,22 @@ void init() {
 		return;
 	}
 
-	log(LogLevel::LOG_INFO, "Detected Nier version: {}", version.versionName());
+	if (!version.has_value()) {
+#ifdef _DEBUG
+		log(LogLevel::LOG_ERROR, "Failed to determine Nier verison from executable. Defaulting to 1.02");
+		version = NierVerisonInfo(NierVersion::NIERVER_102, "NieR:Automata (v1.02 defaulted)");
+#else
+		log(LogLevel::LOG_ERROR,
+				"Unknown nier version detected. The mod doesn't know how to work with this version. Aborting.");
+		return;
+#endif
+	}
+
+	log(LogLevel::LOG_INFO, "Detected Nier version: {}", version.value().versionName());
 
 	Addresses addresses;
 	addresses.ramStart = processRamStartAddr;
-	if (version == NierVersion::NIERVER_102 || version == NierVersion::NIERVER_102_UNPACKED) {
+	if (version == NierVersion::NIERVER_102) {
 		addresses.currentPhase = 0xF64B10;
 		addresses.isWorldLoaded = 0xF6E240;
 		addresses.playerSetName = 0x124DE4C;
@@ -98,7 +109,7 @@ void init() {
 		addresses.unitData = 0x14944C8;
 		addresses.windowMode = 0x1421F38;
 	} else {
-		log(LogLevel::LOG_ERROR, "Unsupported Nier version: {}", version.versionName());
+		log(LogLevel::LOG_ERROR, "Unsupported Nier version: {}", version.value().versionName());
 		return;
 	}
 
