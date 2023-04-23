@@ -1,13 +1,12 @@
 #include "SwapChainWrapper.hpp"
 #include "infra/Log.hpp"
+#include "infra/constants.hpp"
 #include <fmt/format.h>
 #include <fmt/xchar.h>
 #include <random>
 #include <string>
 
 namespace {
-
-const std::wstring VC3_VERSION(L"1.9");
 
 const float SCREEN_WIDTH = 1600.f;
 const float SCREEN_HEIGHT = 900.f;
@@ -213,10 +212,12 @@ std::wstring DXGISwapChainWrapper::getLogo() {
 	}
 
 	if (_inMenu) {
-		return fmt::format(L"VC3Mod {} ({}), Hold X & Y to toggle mod", VC3_VERSION, activatedString);
+		return fmt::format(
+				L"VC3Mod {} ({}), Hold X & Y to toggle mod", AutomataMod::Constants::getWVersion(), activatedString
+		);
 	}
 
-	return fmt::format(L"VC3Mod {} ({})", VC3_VERSION, activatedString);
+	return fmt::format(L"VC3Mod {} ({})", AutomataMod::Constants::getWVersion(), activatedString);
 } // namespace DxWrappers
 
 DXGISwapChainWrapper::~DXGISwapChainWrapper() {}

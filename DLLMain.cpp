@@ -18,6 +18,7 @@
 #include "infra/IAT.hpp"
 #include "infra/Log.hpp"
 #include "infra/ModConfig.hpp"
+#include "infra/constants.hpp"
 
 using namespace AutomataMod;
 
@@ -71,7 +72,7 @@ HRESULT WINAPI D3D11CreateDeviceHooked(
 void init() {
 	using namespace AutomataMod;
 
-	log(LogLevel::LOG_INFO, "Initializing AutomataMod v1.9");
+	log(LogLevel::LOG_INFO, "Initializing AutomataMod {}", AutomataMod::Constants::getVersion());
 	u64 processRamStartAddr = reinterpret_cast<u64>(GetModuleHandle(nullptr));
 	log(LogLevel::LOG_INFO, "Process ram start: 0x{:X}", processRamStartAddr);
 
