@@ -28,7 +28,8 @@ public:
 		if (_obj && _obj.get() == ptr)
 			return *this;
 
-		swap(WrapperPointer(ptr), *this);
+		auto other = WrapperPointer(ptr);
+		swap(other, *this);
 		return *this;
 	}
 

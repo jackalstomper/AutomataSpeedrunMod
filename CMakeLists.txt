@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(AutomataSpeedrunMod)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_definitions(-DWIN32_LEAN_AND_MEAN -DAUTOMATA_LOG)
 add_definitions(-D__WRL_CLASSIC_COM_STRICT__)
