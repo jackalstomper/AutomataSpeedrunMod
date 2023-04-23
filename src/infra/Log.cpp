@@ -74,7 +74,7 @@ void logToConsole(const std::string &str) {
 
 namespace AutomataMod {
 
-void log(LogLevel level, const char *message) {
+void log_raw(LogLevel level, const char *message) {
 #ifndef _DEBUG
 	initLog();
 	if (!logFile.is_open())

@@ -7,6 +7,8 @@ namespace AutomataMod {
 
 enum struct LogLevel { LOG_INFO, LOG_ERROR, LOG_DEBUG };
 
+void log_raw(LogLevel level, const char *message);
+
 /**
  * @brief Log function that supports FMT formatting
  * @param level The log level to use
@@ -15,9 +17,7 @@ enum struct LogLevel { LOG_INFO, LOG_ERROR, LOG_DEBUG };
  */
 template <typename... T> void log(LogLevel level, const std::string_view &fmt, T &&...args) {
 	std::string string = fmt::format(fmt::runtime(fmt), args...);
-	log(level, string.c_str());
+	log_raw(level, string.c_str());
 }
-
-void log(LogLevel level, const char *message);
 
 } // namespace AutomataMod
