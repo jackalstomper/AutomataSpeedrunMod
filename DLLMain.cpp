@@ -4,7 +4,6 @@
 #include <d3d11.h>
 #include <dxgi1_2.h>
 #include <memory>
-#include <ntstatus.h>
 #include <stdexcept>
 #include <string>
 #include <thread>
