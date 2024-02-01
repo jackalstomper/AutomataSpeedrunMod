@@ -14,7 +14,7 @@ IATHook::~IATHook() {
 		DWORD oldPermissions;
 		VirtualProtect(&(m_thunkIAT->u1.Function), sizeof(ULONGLONG), PAGE_EXECUTE_READWRITE, &oldPermissions);
 		m_thunkIAT->u1.Function = m_originalFunction;
-		VirtualProtect(&(m_thunkIAT->u1.Function), sizeof(ULONGLONG), oldPermissions, nullptr);
+		VirtualProtect(&(m_thunkIAT->u1.Function), sizeof(ULONGLONG), oldPermissions, &oldPermissions);
 	}
 
 	m_thunkIAT = nullptr;
@@ -82,7 +82,7 @@ void IATHook::readImportDescriptor(
 				VirtualProtect(&(m_thunkIAT->u1.Function), sizeof(ULONGLONG), PAGE_EXECUTE_READWRITE, &oldPermissions);
 				m_originalFunction = m_thunkIAT->u1.Function;
 				m_thunkIAT->u1.Function = (ULONGLONG)replacementFunction;
-				VirtualProtect(&(m_thunkIAT->u1.Function), sizeof(ULONGLONG), oldPermissions, nullptr);
+				VirtualProtect(&(m_thunkIAT->u1.Function), sizeof(ULONGLONG), oldPermissions, &oldPermissions);
 				AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Successfully hooked {}", functionName);
 				return;
 			}

@@ -77,7 +77,7 @@ std::vector<u8> readFile(const std::string &fileName) {
 	return fileBuff;
 }
 
-std::string QueryhNierBinaryHash() {
+std::string QueryNierBinaryHash() {
 	std::string fileName = getNierFileName();
 	std::vector<u8> fileBuff = readFile(fileName);
 
@@ -116,7 +116,7 @@ bool NierVerisonInfo::operator==(NierVersion other) const { return m_version == 
 
 std::optional<NierVerisonInfo> QueryNierBinaryVersion() {
 	// Query the nier binary hash
-	std::string exeHash = QueryhNierBinaryHash();
+	std::string exeHash = QueryNierBinaryHash();
 
 #ifdef _DEBUG
 	std::string out;
