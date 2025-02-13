@@ -1,7 +1,6 @@
 # Automata Speedrun Mod
 
-This fork changes the Watermark to say "SpeedrunMod" with "VC3Mod" and "Vanilla" being the activation states respecively.
-It also implements a persistent mod toggle state via a file in /data in the NieR: Automata directory.
+Mod that aims to make the NieR: Automata speedrun more tolerable.
 
 ## Installation
 
@@ -11,6 +10,12 @@ It also implements a persistent mod toggle state via a file in /data in the NieR
 
 Done! The game should now display a VC3Mod watermark on screen when loaded.  
 The mod only makes changes **if you start as run from a new game!**
+
+## Toggling the mod on/off
+
+On initial installation the mod is turned off.  
+The mod can be toggled on or off in the main menu using the HOME keyboard key, or X + Y on an xbox controller.  
+The toggle state is saved between game reboots using a registry key at `Computer\HKEY_CURRENT_USER\Software\AutomataSpeedrunMod`.
 
 ## How does it work?
 
