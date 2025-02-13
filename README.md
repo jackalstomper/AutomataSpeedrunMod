@@ -126,3 +126,4 @@ If the repo has already been cloned then the submodule can be downloaded with `g
 - [remote-mine](https://github.com/remote-mine) - Adding fishing replacement logic for Mackerel runs
 - [DisrespectDwardo](https://github.com/DisrespectDwardo) - Authoring code for the FPS display
 - [aloyark](https://github.com/aloyark) - Adding stick magnitude display and keyboard toggle support
+- [Icarus](https://github.com/Icarus-042) - Providing initial toggle persistence implementation and adjusting watermark layout
