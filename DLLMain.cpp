@@ -74,7 +74,7 @@ void handleKeyboardInput() {
 		while (!shouldStopChecker) {
 			if (GetAsyncKeyState(VK_HOME) != 0 && kbInputSetModActiveFlag) {
 				ModChecker *modChecker = ModChecker::get();
-				modChecker->setModActive(!modChecker->getModActive());
+				modChecker->setModActive(!modChecker->getModActive(), true);
 				AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Mod toggled from keyboard input");
 				kbInputSetModActiveFlag = false;
 			} else if (GetAsyncKeyState(VK_HOME) == 0) {
@@ -136,6 +136,7 @@ void init() {
 
 	checkerThread = std::unique_ptr<std::thread>(new std::thread([]() {
 		ModChecker *modChecker = ModChecker::get();
+		modChecker->setModActive(modChecker->getPersistentActiveState(), false);
 		while (!shouldStopChecker) {
 			if (modChecker && factory)
 				modChecker->checkStuff(factory.getComPtr());
@@ -254,7 +255,7 @@ DWORD WINAPI XInputGetState(_In_ DWORD dwUserIndex, _Out_ XINPUT_STATE *pState) 
 			WORD x = pState->Gamepad.wButtons & XINPUT_GAMEPAD_X;
 			WORD y = pState->Gamepad.wButtons & XINPUT_GAMEPAD_Y;
 			if (x && y)
-				modChecker->setModActive(!modChecker->getModActive());
+				modChecker->setModActive(!modChecker->getModActive(), true);
 			lastXInputButtons = pState->Gamepad.wButtons;
 		}
 	}

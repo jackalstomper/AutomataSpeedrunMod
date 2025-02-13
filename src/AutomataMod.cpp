@@ -1,6 +1,7 @@
 #include "AutomataMod.hpp"
 #include "infra/Log.hpp"
 #include "infra/constants.hpp"
+#include <fstream>
 
 namespace {
 
@@ -104,7 +105,7 @@ ModChecker::ModChecker(Addresses addrs)
 		, _unitData(getOffset<u8>(_addresses.unitData))
 		, _isLoading(getOffset<bool>(_addresses.isLoading))
 		, _windowMode(getOffset<u32>(_addresses.windowMode))
-		, _modActive(true)
+		, _modActive(false)
 		, _stickState(getOffset<StickState>(_addresses.stickState)) {}
 
 void ModChecker::checkStuff(Microsoft::WRL::ComPtr<DxWrappers::DXGIFactoryWrapper2> factoryWrapper) {
@@ -151,18 +152,47 @@ void ModChecker::checkStuff(Microsoft::WRL::ComPtr<DxWrappers::DXGIFactoryWrappe
 	}
 }
 
+bool ModChecker::getPersistentActiveState() {
+	std::fstream stateFile;
+	std::string activationState;
+	stateFile.open("./data/speedrunMod.txt", std::ios::in);
+	if (stateFile.is_open()) {
+		std::getline(stateFile, activationState);
+		stateFile.close();
+	}
+	if (activationState != "Vanilla" && activationState != "VC3Mod") {
+		setPersistentActiveState(false, true);
+		activationState = "Vanilla";
+	}
+	return activationState == "VC3Mod";
+}
+
+void ModChecker::setPersistentActiveState(bool state, bool initializing) {
+	std::fstream stateFile;
+	std::string activationState = state ? "VC3Mod" : "Vanilla";
+	std::string filePath = initializing ? "./data/speedrunMod.txt" : "speedrunMod.txt";
+	stateFile.open(filePath, std::ios::out);
+	if (stateFile.is_open()) {
+		stateFile << activationState;
+		stateFile.close();
+	}
+}
+
 bool ModChecker::validCheckState() { return *_worldLoaded == 1 && *_playerNameSet == 1; }
 
 bool ModChecker::getModActive() const { return _modActive; }
 
-void ModChecker::setModActive(bool active) {
-	if (!getInMenu())
+void ModChecker::setModActive(bool active, bool userInput) {
+	if (!getInMenu() && userInput)
 		return;
 
 	if (!active) {
-		log(LogLevel::LOG_INFO, "Mod disabled by user input.");
+		log(LogLevel::LOG_INFO, userInput ? "Mod disabled by user input." : "Mod disabled during initialization.");
 	} else {
-		log(LogLevel::LOG_INFO, "Mod enabled by user input.");
+		log(LogLevel::LOG_INFO, userInput ? "Mod enabled by user input." : "Mod enabled during initialization.");
+	}
+	if (userInput) {
+		setPersistentActiveState(active, !userInput);
 	}
 	_modActive = active;
 }

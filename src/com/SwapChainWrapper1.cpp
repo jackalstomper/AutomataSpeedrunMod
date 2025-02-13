@@ -229,6 +229,33 @@ std::wstring DXGISwapChainWrapper1::calculateFps(float frameDelta) {
 	if (total < 1.f)
 		total = 1.f;
 
+	float fps = 1000 * _frameTimes.size() / total;
+	return fmt::format(L"{:.1f}FPS {:.2f}ms {}", fps, frameDelta, frameCounter);
+}
+
+std::wstring DXGISwapChainWrapper1::getLogo() {
+	std::wstring activatedString;
+	auto checker = AutomataMod::ModChecker::get();
+	if (checker && checker->getModActive()) {
+		activatedString = L"VC3Mod";
+	} else {
+		activatedString = L"Vanilla";
+	}
+
+	if (checker && checker->getInMenu()) {
+		return fmt::format(
+				L"SpeedrunMod {} ({}), Press Home or hold X & Y to toggle mod", AutomataMod::Constants::getWVersion(),
+				activatedString
+		);
+	}
+
+	return fmt::format(L"SpeedrunMod {} ({})", AutomataMod::Constants::getWVersion(), activatedString);
+} // namespace DxWrappers
+
+std::wstring DXGISwapChainWrapper1::getJoystickMagnitude() {
+	using namespace AutomataMod;
+	StickState *state = reinterpret_cast<StickState *>(processRamStartAddr + 0x13FCC10);
+	float magnitude = std::sqrt(state->leftY * state->leftY + state->leftX * state->leftX) * 0.001f;
 	wchar_t mode = L'?';
 	if (auto checker = AutomataMod::ModChecker::get()) {
 		switch (checker->getWindowMode()) {
@@ -246,35 +273,7 @@ std::wstring DXGISwapChainWrapper1::calculateFps(float frameDelta) {
 			break;
 		}
 	}
-
-	float fps = 1000 * _frameTimes.size() / total;
-	return fmt::format(L"{:.1f}FPS {:.2f}ms ({}) {}", fps, frameDelta, mode, frameCounter);
-}
-
-std::wstring DXGISwapChainWrapper1::getLogo() {
-	std::wstring activatedString;
-	auto checker = AutomataMod::ModChecker::get();
-	if (checker && checker->getModActive()) {
-		activatedString = L"Active";
-	} else {
-		activatedString = L"Inactive";
-	}
-
-	if (checker && checker->getInMenu()) {
-		return fmt::format(
-				L"VC3Mod {} ({}), Press Home or hold X & Y to toggle mod", AutomataMod::Constants::getWVersion(),
-				activatedString
-		);
-	}
-
-	return fmt::format(L"VC3Mod {} ({})", AutomataMod::Constants::getWVersion(), activatedString);
-} // namespace DxWrappers
-
-std::wstring DXGISwapChainWrapper1::getJoystickMagnitude() {
-	using namespace AutomataMod;
-	StickState *state = reinterpret_cast<StickState *>(processRamStartAddr + 0x13FCC10);
-	float magnitude = std::sqrt(state->leftY * state->leftY + state->leftX * state->leftX) * 0.001f;
-	return fmt::format(L"Stick: {:.3f}", magnitude);
+	return fmt::format(L"Stick: {:.3f} ({})", magnitude, mode);
 }
 
 DXGISwapChainWrapper1::~DXGISwapChainWrapper1() {}

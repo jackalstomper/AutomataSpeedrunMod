@@ -44,6 +44,7 @@ class ModChecker {
 	void addInventory(u32 itemId, u32 quantity);
 	void setVc3Inventory();
 	bool adjustFishInventory(bool shouldDeleteFish);
+	void setPersistentActiveState(bool state, bool initializing);
 
 	template <typename T> T *getOffset(u64 offset) { return reinterpret_cast<T *>(_addresses.ramStart + offset); }
 
@@ -57,8 +58,9 @@ public:
 	// Returns true if the game is in a state for modding inventory
 	bool validCheckState();
 
+	bool getPersistentActiveState();
 	bool getModActive() const;
-	void setModActive(bool active);
+	void setModActive(bool active, bool userInput);
 
 	u32 getWindowMode() const;
 	bool getInMenu() const;

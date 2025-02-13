@@ -1,6 +1,7 @@
 # Automata Speedrun Mod
 
-Mod that aims to make the NieR: Automata speedrun more tolerable.
+This fork changes the Watermark to say "SpeedrunMod" with "VC3Mod" and "Vanilla" being the activation states respecively.
+It also implements a persistent mod toggle state via a file in /data in the NieR: Automata directory.
 
 ## Installation
 
