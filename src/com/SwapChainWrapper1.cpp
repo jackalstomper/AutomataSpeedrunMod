@@ -237,7 +237,7 @@ std::wstring DXGISwapChainWrapper1::getLogo() {
 	std::wstring activatedString;
 	auto checker = AutomataMod::ModChecker::get();
 	if (checker && checker->getModActive()) {
-		activatedString = L"Modded";
+		activatedString = L"VC3Mod";
 	} else {
 		activatedString = L"Vanilla";
 	}
