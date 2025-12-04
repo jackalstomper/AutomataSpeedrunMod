@@ -24,7 +24,7 @@ If you have launched the game since installing, you will need to verify the inte
 WINEDLLOVERRIDES="xinput1_4.dll=n,b" %command%
 ```
 
-You should now be able to launch the game through steam and see the the VC3Mod watermark when loaded.
+You should now be able to launch the game through Steam and see the the VC3Mod watermark when loaded.
 
 ## Toggling the mod on/off
 
