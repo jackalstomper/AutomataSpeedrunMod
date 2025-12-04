@@ -6,10 +6,25 @@ Mod that aims to make the NieR: Automata speedrun more tolerable.
 
 - Download a version from [releases](https://github.com/jackalstomper/AutomataSpeedrunMod/releases/latest)
 - Unzip `AutomataMod.zip`
-- Place xinput1_4.dll in the same directory as `NieRAutomata.exe`
+- Place `xinput1_4.dll` in the same directory as `NieRAutomata.exe`
 
 Done! The game should now display a VC3Mod watermark on screen when loaded.  
 The mod only makes changes **if you start as run from a new game!**
+
+## Additional steps when running on Linux through Proton
+
+A startup script runs on the first launch of the game that will determine whether to use NieRAutomata.exe or NieRAutomataCompat.exe. 
+Through Proton, the script will detect a need for the compat version and will delete the other. This compat version is not compatible with the mod.
+If you have launched the game since installing, you will need to verify the integrity of the game install and then do the following BEFORE launching the game:
+
+- Delete `NieRAutomataCompat.exe` from the install directory (same directory that you placed `xinput1_4.dll`)
+- In Steam, open the game's properties and add the following launch option:
+
+```
+WINEDLLOVERRIDES="xinput1_4.dll=n,b" %command%
+```
+
+You should now be able to launch the game through Steam and see the the VC3Mod watermark when loaded.
 
 ## Toggling the mod on/off
 
