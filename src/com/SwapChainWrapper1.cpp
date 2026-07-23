@@ -1,5 +1,6 @@
 #include "SwapChainWrapper1.hpp"
 #include "AutomataMod.hpp"
+#include "ControllerInput.hpp"
 #include "StickState.hpp"
 #include "infra/Log.hpp"
 #include "infra/constants.hpp"
@@ -8,15 +9,19 @@
 #include <fmt/xchar.h>
 #include <random>
 #include <string>
+#include <utility>
+#include <vector>
 
 #undef max
 #include <algorithm>
 
 namespace {
 
-const float SCREEN_WIDTH = 1600.f;
 const float SCREEN_HEIGHT = 900.f;
 const float WATERMARK_TEXT_SIZE = 15.25f;
+const wchar_t *PLAYSTATION_SYMBOL_FONT = L"Segoe UI Symbol";
+constexpr wchar_t PLAYSTATION_CROSS_LABEL = L'\u00D7';
+constexpr wchar_t PLAYSTATION_CROSS_DISPLAY = L'\u2715';
 
 const D2D1::ColorF WATERMARK_COLOR = D2D1::ColorF(0.803f, 0.784f, 0.690f, 1.f);
 const D2D1::ColorF SHADOW_COLOR = D2D1::ColorF(0.f, 0.f, 0.f, 0.3f);
@@ -28,6 +33,43 @@ const D2D1_BITMAP_PROPERTIES1 BITMAP_PROPERTIES = {
 		D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
 		nullptr
 };
+
+bool isPlayStationFaceSymbol(wchar_t character) noexcept {
+	return character == PLAYSTATION_CROSS_DISPLAY || character == L'\u25CB' || character == L'\u25A1' ||
+			character == L'\u25B3';
+}
+
+bool containsPlayStationFaceSymbol(const std::wstring &line) noexcept {
+	return std::any_of(line.begin(), line.end(), isPlayStationFaceSymbol);
+}
+
+void useFullHeightPlayStationCross(std::wstring &line) noexcept {
+	for (wchar_t &character : line) {
+		if (character == PLAYSTATION_CROSS_LABEL) {
+			// U+2715 has the same full-height geometry as the circle, square,
+			// and triangle in Segoe UI Symbol. U+00D7 is a smaller math glyph.
+			character = PLAYSTATION_CROSS_DISPLAY;
+		}
+	}
+}
+
+bool stylePlayStationFaceSymbols(
+		IDWriteTextLayout *layout, const std::wstring &line, FLOAT fontSize
+) noexcept {
+	for (size_t index = 0; index < line.size(); ++index) {
+		if (!isPlayStationFaceSymbol(line[index])) {
+			continue;
+		}
+
+		const DWRITE_TEXT_RANGE range{static_cast<UINT32>(index), 1};
+		if (FAILED(layout->SetFontFamilyName(PLAYSTATION_SYMBOL_FONT, range)) ||
+				FAILED(layout->SetFontWeight(DWRITE_FONT_WEIGHT_NORMAL, range)) ||
+				FAILED(layout->SetFontSize(fontSize, range))) {
+			return false;
+		}
+	}
+	return true;
+}
 
 } // namespace
 
@@ -74,7 +116,6 @@ void DXGISwapChainWrapper1::renderWatermark() {
 		resetLocation(screenSize);
 	}
 
-	float xscale = screenSize.width * (1.f / SCREEN_WIDTH) * 1.2;
 	float yscale = screenSize.height * (1.f / SCREEN_HEIGHT) * 1.2;
 	float heightScale = WATERMARK_TEXT_SIZE * yscale;
 
@@ -91,38 +132,70 @@ void DXGISwapChainWrapper1::renderWatermark() {
 	}
 
 	FLOAT textHeight = _textFormat->GetFontSize();
-	FLOAT rectHeight = textHeight * 3; // * 3 for three lines, the mod name and the FPS count
+	FLOAT rectHeight = textHeight * 4;
 	std::wstring logo = getLogo();
 	std::chrono::duration<float, std::milli> frameDeltaMilli = now - _lastFrame;
 	std::wstring fpsString = calculateFps(frameDeltaMilli.count());
 	std::wstring stickMagnitudeString = getJoystickMagnitude();
+	std::wstring buttonsString = AutomataMod::ControllerInput::getPressedButtons();
 
-	std::wstring *maxLenString;
-	if (fpsString.size() > logo.size()) {
-		maxLenString = &fpsString;
-	} else {
-		maxLenString = &logo;
+	std::array<std::wstring, 4> displayLines{logo, fpsString, stickMagnitudeString, buttonsString};
+	FLOAT rectWidth = 0.f;
+	std::vector<ComPtr<IDWriteTextLayout>> lineLayouts;
+	lineLayouts.reserve(displayLines.size());
+	DWRITE_LINE_METRICS hudLineMetrics{};
+	bool haveHudLineMetrics = false;
+	for (std::wstring &line : displayLines) {
+		useFullHeightPlayStationCross(line);
+		ComPtr<IDWriteTextLayout> lineLayout;
+		hr = _dwFactory->CreateTextLayout(
+				line.c_str(), static_cast<UINT32>(line.size()), _textFormat.Get(), screenSize.width, screenSize.height,
+				lineLayout.GetAddressOf()
+		);
+		if (!SUCCEEDED(hr)) {
+			AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to create IDWriteTextLayout");
+			return;
+		}
+
+		hr = lineLayout->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+		if (FAILED(hr)) {
+			AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to disable HUD text wrapping");
+			return;
+		}
+
+		if (!haveHudLineMetrics) {
+			UINT32 lineMetricCount = 0;
+			hr = lineLayout->GetLineMetrics(&hudLineMetrics, 1, &lineMetricCount);
+			if (FAILED(hr) || lineMetricCount != 1) {
+				AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get the HUD baseline");
+				return;
+			}
+			haveHudLineMetrics = true;
+		}
+
+		if (!stylePlayStationFaceSymbols(lineLayout.Get(), line, textHeight)) {
+			AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to normalize PlayStation face symbols");
+			return;
+		}
+		if (containsPlayStationFaceSymbol(line)) {
+			hr = lineLayout->SetLineSpacing(
+					DWRITE_LINE_SPACING_METHOD_UNIFORM, hudLineMetrics.height, hudLineMetrics.baseline
+			);
+			if (FAILED(hr)) {
+				AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to align PlayStation button text");
+				return;
+			}
+		}
+
+		DWRITE_TEXT_METRICS metrics;
+		hr = lineLayout->GetMetrics(&metrics);
+		if (!SUCCEEDED(hr)) {
+			AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get DWRITE_TEXT_METRICS");
+			return;
+		}
+		rectWidth = std::max(rectWidth, metrics.widthIncludingTrailingWhitespace);
+		lineLayouts.emplace_back(std::move(lineLayout));
 	}
-
-	// Use IDWriteTextLayout to get accurate text rectangle size
-	ComPtr<IDWriteTextLayout> layout;
-	hr = _dwFactory->CreateTextLayout(
-			maxLenString->c_str(), maxLenString->size(), _textFormat.Get(), screenSize.width, screenSize.height,
-			layout.GetAddressOf()
-	);
-	if (!SUCCEEDED(hr)) {
-		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to create IDWriteTextLayout");
-		return;
-	}
-
-	DWRITE_TEXT_METRICS metrics;
-	hr = layout->GetMetrics(&metrics);
-	if (!SUCCEEDED(hr)) {
-		AutomataMod::log(AutomataMod::LogLevel::LOG_ERROR, "Failed to get DWRITE_TEXT_METRICS");
-		return;
-	}
-
-	float rectWidth = metrics.width;
 	if (_dvdMode) {
 		float xBound = _location.x + rectWidth;
 		float yBound = _location.y + rectHeight;
@@ -147,8 +220,6 @@ void DXGISwapChainWrapper1::renderWatermark() {
 			_location.y = std::fmax(std::fmin(_location.y, screenSize.height - rectHeight), 0.f);
 	}
 
-	D2D1_RECT_F rect = {_location.x, _location.y, _location.x + rectWidth * xscale, _location.y + rectHeight};
-
 	_ASSERT(_textFormat);
 	_ASSERT(_shadowBrush);
 	_ASSERT(_brush);
@@ -161,35 +232,18 @@ void DXGISwapChainWrapper1::renderWatermark() {
 	_deviceContext->SetTarget(bitmap.Get());
 	_deviceContext->SetTransform(root);
 
-	// Draw shadow behind our text
-	_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, 2));
-	_deviceContext->DrawText(logo.c_str(), logo.size(), _textFormat.Get(), rect, _shadowBrush.Get());
+	for (size_t lineIndex = 0; lineIndex < displayLines.size(); ++lineIndex) {
+		const FLOAT yOffset = textHeight * static_cast<FLOAT>(lineIndex);
+		const D2D1_POINT_2F lineOrigin = D2D1::Point2F(_location.x, _location.y + yOffset);
+		_deviceContext->DrawTextLayout(
+				D2D1::Point2F(lineOrigin.x + 2.f, lineOrigin.y + 2.f), lineLayouts[lineIndex].Get(), _shadowBrush.Get(),
+				D2D1_DRAW_TEXT_OPTIONS_NONE
+		);
+		_deviceContext->DrawTextLayout(
+				lineOrigin, lineLayouts[lineIndex].Get(), _brush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE
+		);
+	}
 	_deviceContext->SetTransform(root);
-
-	// Draw main text
-	_deviceContext->DrawText(logo.c_str(), logo.size(), _textFormat.Get(), rect, _brush.Get());
-
-	// Draw FPS and Frame Counter Shadow
-	_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, textHeight + 2));
-	_deviceContext->DrawText(fpsString.c_str(), fpsString.length(), _textFormat.Get(), rect, _shadowBrush.Get());
-	_deviceContext->SetTransform(root);
-
-	// Draw FPS and Frame Counter
-	_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(0, textHeight));
-	_deviceContext->DrawText(fpsString.c_str(), fpsString.length(), _textFormat.Get(), rect, _brush.Get());
-
-	// Draw Joystick Magnitude shadow
-	_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(2, 2 + (textHeight * 2)));
-	_deviceContext->DrawText(
-			stickMagnitudeString.c_str(), stickMagnitudeString.length(), _textFormat.Get(), rect, _shadowBrush.Get()
-	);
-	_deviceContext->SetTransform(root);
-
-	// Draw Joystick Magnitude
-	_deviceContext->SetTransform(D2D1::Matrix3x2F::Translation(0, textHeight * 2));
-	_deviceContext->DrawText(
-			stickMagnitudeString.c_str(), stickMagnitudeString.length(), _textFormat.Get(), rect, _brush.Get()
-	);
 
 	_deviceContext->EndDraw();
 	_deviceContext->SetTarget(oldTarget.Get());
@@ -244,7 +298,7 @@ std::wstring DXGISwapChainWrapper1::getLogo() {
 
 	if (checker && checker->getInMenu()) {
 		return fmt::format(
-				L"SpeedrunMod {} ({}), Press Home or hold X & Y to toggle mod", AutomataMod::Constants::getWVersion(),
+				L"SpeedrunMod {} ({}), Home/X+Y: mod, F9: labels, F10: remap", AutomataMod::Constants::getWVersion(),
 				activatedString
 		);
 	}

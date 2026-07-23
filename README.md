@@ -11,6 +11,10 @@ Mod that aims to make the NieR: Automata speedrun more tolerable.
 Done! The game should now display a VC3Mod watermark on screen when loaded.  
 The mod only makes changes **if you start as run from a new game!**
 
+The on-screen display also shows FPS, frame count, left-stick magnitude, and the buttons currently held on a controller. Xbox/XInput controllers and DirectInput-compatible controllers are supported. All controllers use Xbox button names by default. Press F9 to switch every controller between Xbox names (`A`, `LB`, `LT`) and PlayStation symbols (`×`, `○`, `□`, `△`, `L1`, `L2`). The selected style is saved between game reboots. In PlayStation mode, the four face symbols use one symbol font with matching visual height and a stable baseline.
+
+DirectInput button and trigger ordering is not standardized. If controls appear under the wrong names, press F10 and follow the 12 on-screen prompts. Release all controls first, then press each requested control in order. Trigger axes and unusual button orders are detected during this process, and the completed mapping is saved between game reboots. PS/Guide and touchpad buttons are intentionally not displayed or included in calibration.
+
 ## Additional steps when running on Linux through Proton
 
 A startup script runs on the first launch of the game that will determine whether to use NieRAutomata.exe or NieRAutomataCompat.exe. 

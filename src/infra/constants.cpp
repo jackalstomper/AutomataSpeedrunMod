@@ -2,8 +2,8 @@
 #include <string>
 
 namespace {
-const std::string VC3_VERSION("1.12");
-const std::wstring VC3_WVERSION(L"1.12");
+const std::string VC3_VERSION("1.13");
+const std::wstring VC3_WVERSION(L"1.13");
 } // namespace
 
 namespace AutomataMod {

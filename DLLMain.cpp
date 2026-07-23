@@ -11,6 +11,7 @@
 #include <winuser.h>
 
 #include "AutomataMod.hpp"
+#include "ControllerInput.hpp"
 #include "com/FactoryWrapper2.hpp"
 #include "com/WrapperPointer.hpp"
 #include "infra/DLL.hpp"
@@ -18,6 +19,7 @@
 #include "infra/IAT.hpp"
 #include "infra/Log.hpp"
 #include "infra/ModConfig.hpp"
+#include "infra/Persistence.hpp"
 #include "infra/constants.hpp"
 
 using namespace AutomataMod;
@@ -26,6 +28,8 @@ namespace {
 
 WORD lastXInputButtons = 0;
 bool kbInputSetModActiveFlag = true;
+bool kbInputToggleDisplayFlag = true;
+bool kbInputStartCalibrationFlag = true;
 std::unique_ptr<DLL> xinput;
 std::unique_ptr<std::thread> checkerThread;
 std::unique_ptr<std::thread> keyboardInputThread;
@@ -72,13 +76,37 @@ HRESULT WINAPI D3D11CreateDeviceHooked(
 void handleKeyboardInput() {
 	keyboardInputThread = std::unique_ptr<std::thread>(new std::thread([]() {
 		while (!shouldStopChecker) {
-			if (GetAsyncKeyState(VK_HOME) != 0 && kbInputSetModActiveFlag) {
+			const bool homePressed = (GetAsyncKeyState(VK_HOME) & 0x8000) != 0;
+			const bool f9Pressed = (GetAsyncKeyState(VK_F9) & 0x8000) != 0;
+			const bool f10Pressed = (GetAsyncKeyState(VK_F10) & 0x8000) != 0;
+			if (homePressed && kbInputSetModActiveFlag) {
 				ModChecker *modChecker = ModChecker::get();
 				modChecker->setModActive(!modChecker->getModActive());
 				AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Mod toggled from keyboard input");
 				kbInputSetModActiveFlag = false;
-			} else if (GetAsyncKeyState(VK_HOME) == 0) {
+			} else if (!homePressed) {
 				kbInputSetModActiveFlag = true;
+			}
+
+			if (f9Pressed && kbInputToggleDisplayFlag) {
+				const auto style = ControllerInput::toggleDisplayStyle();
+				const bool playStation = style == ControllerInput::DisplayStyle::PlayStation;
+				Persistence::setPlayStationButtonDisplay(playStation);
+				AutomataMod::log(
+						AutomataMod::LogLevel::LOG_INFO, "Button display changed to {}",
+						playStation ? "PlayStation" : "Xbox"
+				);
+				kbInputToggleDisplayFlag = false;
+			} else if (!f9Pressed) {
+				kbInputToggleDisplayFlag = true;
+			}
+
+			if (f10Pressed && kbInputStartCalibrationFlag) {
+				ControllerInput::startCalibration();
+				AutomataMod::log(AutomataMod::LogLevel::LOG_INFO, "Controller mapping calibration started");
+				kbInputStartCalibrationFlag = false;
+			} else if (!f10Pressed) {
+				kbInputStartCalibrationFlag = true;
 			}
 
 			std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(33));
@@ -133,6 +161,11 @@ void init() {
 	}
 
 	AutomataMod::ModChecker::set(std::make_unique<ModChecker>(addresses));
+	ControllerInput::setDisplayStyle(
+			Persistence::getPlayStationButtonDisplay() ? ControllerInput::DisplayStyle::PlayStation
+																	 : ControllerInput::DisplayStyle::Xbox
+	);
+	ControllerInput::start();
 
 	checkerThread = std::unique_ptr<std::thread>(new std::thread([]() {
 		ModChecker *modChecker = ModChecker::get();
@@ -186,6 +219,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
 			keyboardInputThread = nullptr;
 		}
 
+		ControllerInput::stop();
 		AutomataMod::ModChecker::set(nullptr);
 		factory = nullptr;
 		d3dCreateDeviceHook = nullptr;
@@ -245,6 +279,15 @@ DWORD WINAPI XInputGetState(_In_ DWORD dwUserIndex, _Out_ XINPUT_STATE *pState) 
 		return ERROR_DEVICE_NOT_CONNECTED;
 
 	DWORD result = ptr(dwUserIndex, pState);
+	if (dwUserIndex == 0) {
+		if (result == ERROR_SUCCESS && pState) {
+			ControllerInput::updateXInput(
+					pState->Gamepad.wButtons, pState->Gamepad.bLeftTrigger, pState->Gamepad.bRightTrigger
+			);
+		} else {
+			ControllerInput::clearXInput();
+		}
+	}
 
 	// Check for mod toggle button combo
 	ModChecker *modChecker = ModChecker::get();

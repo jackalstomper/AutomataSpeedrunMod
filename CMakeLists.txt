@@ -20,4 +20,12 @@ add_subdirectory(fmt)
 
 file(GLOB_RECURSE MOD_SOURCES src/*.cpp)
 add_library(xinput1_4 SHARED DLLMain.cpp ${MOD_SOURCES} xinput.def)
-target_link_libraries(xinput1_4 fmt::fmt d3d11 d2d1 dwrite dxgi bcrypt)
+target_link_libraries(xinput1_4 fmt::fmt d3d11 d2d1 dwrite dxgi bcrypt dinput8 dxguid)
+
+include(CTest)
+if(BUILD_TESTING)
+	add_executable(controller_input_tests tests/ControllerInputTests.cpp src/ControllerInput.cpp)
+	target_compile_definitions(controller_input_tests PRIVATE CONTROLLER_INPUT_TESTING)
+	target_link_libraries(controller_input_tests dinput8 dxguid)
+	add_test(NAME controller_input_tests COMMAND controller_input_tests)
+endif()
