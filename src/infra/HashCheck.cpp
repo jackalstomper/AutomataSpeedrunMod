@@ -16,15 +16,31 @@ namespace {
 using namespace AutomataMod;
 
 const std::unordered_map<std::string, NierVerisonInfo> VERSION_HASHES = {
+		// Version 1.01
+		// Last version to support the big skips used in E ending. The mod no longer supports this version (see below)
 		{"\xa0\x1a\xc5\x13\x2e\x10\x92\x52\xd6\xd9\xa4\xcb\xf9\x74\x61\x4d\xec\xfb\xe3\x23\x71\x3c\x1f\xbf\x5b\xc2\x48\xf0"
 		 "\x12\x61\x77\x3f",
 		 {NierVersion::NIERVER_101, "NieR:Automata (v1.01)"}},
+		// Version 1.02 manifest 4633942970953135000 2021-07-15
+		// 1.02 introduced a new xinput version and uses a different direct X version and API compared to 1.01
+		// This means the mod broke support for 1.01 after it started supporting 1.02
 		{"\x51\x71\xbe\xd0\x9e\x6f\xec\x7b\x21\xbf\x0e\xa4\x79\xdb\xd2\xe1\xb2\x28\x69\x5c\x67\xd1\xf0\xb4\x78\x54\x9a\x9b"
 		 "\xe2\xf5\x72\x6a",
 		 {NierVersion::NIERVER_102, "NieR:Automata (v1.02)"}},
+		// Version 1.03 manifest 2909777361921225087 2026-11-05
+		// After 5 long years they randomly updated the game without any notice.
+		// This version recompiled the binary and changed all the offsets,
+		// fixed some localization errors and added more languages.
+		// It had a life of 4 days before being updated.
+		{"\xf8\x14\xb0\x34\x1d\x5d\x0e\xdd\xb6\xa7\xe3\x26\x6d\x19\x71\x60\x9f\x88\x9b\x7a\x80\x05\x9c\x2f\xc7\x85\x8c\xd2"
+		 "\x39\x40\x4c\x2e",
+		 {NierVersion::NIERVER_103, "NieR:Automata (v1.03)"}},
+		// Version 1.04 manifest 7508131098987674467 2026-11-09
+		// Nearly identical to 1.03 except some wallpapers were added and the binary grew by 11kb
+		// No offsets were changed
 		{"\x09\x85\x4c\x2d\x45\xd9\xa7\x2e\x66\x35\x7e\x72\xf5\x0c\xee\x37\x9b\xb2\xea\xfe\x35\xb3\xd6\x4e\x5e\x88\xf4\xed"
 		 "\xdc\x86\x13\xfa",
-		 {NierVersion::NIERVER_103, "NieR:Automata (v1.03)"}},
+		 {NierVersion::NIERVER_103, "NieR:Automata (v1.04)"}},
 		{"\x3d\xde\x56\x6c\xea\x3e\x3b\xc1\x5e\x45\x92\x66\x02\xfb\x4f\x24\xd4\x8f\x77\xdf\x8a\x7b\xc5\x50\xa5\xb2\xdc\xae"
 		 "\xcc\xcf\x09\x48",
 		 {NierVersion::NIERVER_WINSTORE, "NieR:Automata (Winstore)"}},
