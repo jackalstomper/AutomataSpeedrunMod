@@ -120,7 +120,7 @@ void init() {
 		addresses.currentPhase = 0xF64B10;
 		addresses.isWorldLoaded = 0xF6E240;
 		addresses.playerSetName = 0x124DE4C;
-		addresses.isLoading = 0x14005F4;
+		addresses.isLoading = 0x13ECB38;
 		addresses.itemTableStart = 0x148C4C4;
 		addresses.chipTableStart = 0x148E410;
 		addresses.playerLocation = 0x12553E0;
@@ -128,10 +128,10 @@ void init() {
 		addresses.windowMode = 0x1421F38;
 		addresses.stickState = 0x13FCC10;
 	} else if (version == NierVersion::NIERVER_103) {
-		addresses.currentPhase = 0xF64AA8;
+		addresses.currentPhase = 0xF64B20;
 		addresses.isWorldLoaded = 0x1268C90;
 		addresses.playerSetName = 0x124E1CC;
-		addresses.isLoading = 0x102F100;
+		addresses.isLoading = 0x13ECEB8;
 		addresses.itemTableStart = 0x148C834;
 		addresses.chipTableStart = 0x148E780;
 		addresses.playerLocation = 0x1774F00;
