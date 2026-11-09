@@ -129,7 +129,7 @@ void init() {
 		addresses.stickState = 0x13FCC10;
 	} else if (version == NierVersion::NIERVER_103) {
 		addresses.currentPhase = 0xF64B20;
-		addresses.isWorldLoaded = 0x1268C90;
+		addresses.isWorldLoaded = 0xF6E3C0;
 		addresses.playerSetName = 0x124E1CC;
 		addresses.isLoading = 0x13ECEB8;
 		addresses.itemTableStart = 0x148C834;
