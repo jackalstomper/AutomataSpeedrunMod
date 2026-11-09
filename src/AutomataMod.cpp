@@ -201,6 +201,7 @@ std::wstring ModChecker::getJoystickMagnitudeString() const {
 // Deletes all inventory, chips, and unit data, then adds VC3 mod items and the desert flier unit data
 // After running this you can verify the items are present in the pause menu
 void ModChecker::testMod() {
+	log(LogLevel::LOG_DEBUG, "testMod() triggered. Clearing inventory");
 	for (auto i = _inventoryManager.begin(); i != _inventoryManager.end(); ++i) {
 		_inventoryManager.removeItem(i);
 	}
@@ -224,6 +225,8 @@ void ModChecker::testMod() {
 
 	// add flier data
 	_unitData[7] = 2;
+
+	log(LogLevel::LOG_DEBUG, "testMod() completed");
 }
 #endif
 
