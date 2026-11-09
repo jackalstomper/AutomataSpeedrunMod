@@ -1,6 +1,5 @@
 #include "SwapChainWrapper1.hpp"
 #include "AutomataMod.hpp"
-#include "StickState.hpp"
 #include "infra/Log.hpp"
 #include "infra/constants.hpp"
 #include "infra/defs.hpp"
@@ -34,11 +33,6 @@ const D2D1_BITMAP_PROPERTIES1 BITMAP_PROPERTIES = {
 namespace {
 
 u64 frameCounter = 0;
-
-// I couldn't get the ModChecker working here to get the
-// pointers for joystickMagnitude so I just did the pointer
-// stuff here.
-const auto processRamStartAddr = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
 
 } // namespace
 
@@ -95,7 +89,12 @@ void DXGISwapChainWrapper1::renderWatermark() {
 	std::wstring logo = getLogo();
 	std::chrono::duration<float, std::milli> frameDeltaMilli = now - _lastFrame;
 	std::wstring fpsString = calculateFps(frameDeltaMilli.count());
-	std::wstring stickMagnitudeString = getJoystickMagnitude();
+	std::wstring stickMagnitudeString;
+	if (auto checker = AutomataMod::ModChecker::get()) {
+		stickMagnitudeString = checker->getJoystickMagnitudeString();
+	} else {
+		stickMagnitudeString = L"Stick: Unknown";
+	}
 
 	std::wstring *maxLenString;
 	if (fpsString.size() > logo.size()) {
@@ -251,30 +250,6 @@ std::wstring DXGISwapChainWrapper1::getLogo() {
 
 	return fmt::format(L"SpeedrunMod {} ({})", AutomataMod::Constants::getWVersion(), activatedString);
 } // namespace DxWrappers
-
-std::wstring DXGISwapChainWrapper1::getJoystickMagnitude() {
-	using namespace AutomataMod;
-	StickState *state = reinterpret_cast<StickState *>(processRamStartAddr + 0x13FCC10);
-	float magnitude = std::sqrt(state->leftY * state->leftY + state->leftX * state->leftX) * 0.001f;
-	wchar_t mode = L'?';
-	if (auto checker = AutomataMod::ModChecker::get()) {
-		switch (checker->getWindowMode()) {
-		case 0:
-			mode = L'F';
-			break;
-		case 1:
-			mode = L'W';
-			break;
-		case 2:
-			mode = L'B';
-			break;
-		default:
-			mode = L'?';
-			break;
-		}
-	}
-	return fmt::format(L"Stick: {:.3f} ({})", magnitude, mode);
-}
 
 DXGISwapChainWrapper1::~DXGISwapChainWrapper1() {}
 

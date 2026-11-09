@@ -126,7 +126,18 @@ void init() {
 		addresses.playerLocation = 0x12553E0;
 		addresses.unitData = 0x14944C8;
 		addresses.windowMode = 0x1421F38;
-		addresses.stickState = 0x13fcc10;
+		addresses.stickState = 0x13FCC10;
+	} else if (version == NierVersion::NIERVER_103) {
+		addresses.currentPhase = 0xF64AA8;
+		addresses.isWorldLoaded = 0x1268C90;
+		addresses.playerSetName = 0x124E1CC;
+		addresses.isLoading = 0x102F100;
+		addresses.itemTableStart = 0x148C834;
+		addresses.chipTableStart = 0x148E780;
+		addresses.playerLocation = 0x1774F00;
+		addresses.unitData = 0x1494838;
+		addresses.windowMode = 0x14222A8;
+		addresses.stickState = 0x13FCEB0;
 	} else {
 		log(LogLevel::LOG_ERROR, "Unsupported Nier version: {}", version.value().versionName());
 		return;
@@ -223,16 +234,18 @@ DWORD WINAPI XInputGetBatteryInformation(
 	return ptr(dwUserIndex, devType, pBatteryInformation);
 }
 
-DWORD WINAPI XInputGetCapabilities(_In_ DWORD dwUserIndex, _In_ DWORD dwFlags, _Out_ XINPUT_CAPABILITIES *pCapabilities)
-		WIN_NOEXCEPT {
+DWORD WINAPI XInputGetCapabilities(
+		_In_ DWORD dwUserIndex, _In_ DWORD dwFlags, _Out_ XINPUT_CAPABILITIES *pCapabilities
+) WIN_NOEXCEPT {
 	static auto ptr = getXinputFunc<DWORD(WINAPI *)(DWORD, DWORD, XINPUT_CAPABILITIES *)>("XInputGetCapabilities");
 	if (!ptr)
 		return ERROR_DEVICE_NOT_CONNECTED;
 	return ptr(dwUserIndex, dwFlags, pCapabilities);
 }
 
-DWORD WINAPI XInputGetKeystroke(_In_ DWORD dwUserIndex, _Reserved_ DWORD dwReserved, _Out_ PXINPUT_KEYSTROKE pKeystroke)
-		WIN_NOEXCEPT {
+DWORD WINAPI XInputGetKeystroke(
+		_In_ DWORD dwUserIndex, _Reserved_ DWORD dwReserved, _Out_ PXINPUT_KEYSTROKE pKeystroke
+) WIN_NOEXCEPT {
 	static auto ptr = getXinputFunc<DWORD(WINAPI *)(DWORD, DWORD, XINPUT_KEYSTROKE *)>("XInputGetKeystroke");
 	if (!ptr)
 		return ERROR_DEVICE_NOT_CONNECTED;
@@ -248,15 +261,30 @@ DWORD WINAPI XInputGetState(_In_ DWORD dwUserIndex, _Out_ XINPUT_STATE *pState) 
 
 	// Check for mod toggle button combo
 	ModChecker *modChecker = ModChecker::get();
-	if (result == ERROR_SUCCESS && dwUserIndex == 0 && modChecker && pState && !modChecker->validCheckState()) {
-		// check if new state diff from last state
-		if (pState->Gamepad.wButtons != lastXInputButtons) {
-			WORD x = pState->Gamepad.wButtons & XINPUT_GAMEPAD_X;
-			WORD y = pState->Gamepad.wButtons & XINPUT_GAMEPAD_Y;
-			if (x && y)
-				modChecker->setModActive(!modChecker->getModActive());
-			lastXInputButtons = pState->Gamepad.wButtons;
+	if (result == ERROR_SUCCESS && dwUserIndex == 0 && modChecker && pState) {
+		WORD buttons = pState->Gamepad.wButtons;
+		if (!modChecker->validCheckState()) {
+			// check if new state diff from last state
+			if (buttons != lastXInputButtons) {
+				WORD x = buttons & XINPUT_GAMEPAD_X;
+				WORD y = buttons & XINPUT_GAMEPAD_Y;
+				if (x && y)
+					modChecker->setModActive(!modChecker->getModActive());
+			}
 		}
+#ifdef _DEBUG
+		// Button combo to quickly sanity check the mod functionality
+		if (result == ERROR_SUCCESS && dwUserIndex == 0 && modChecker && pState) {
+			if (buttons != lastXInputButtons) {
+				WORD x = buttons & XINPUT_GAMEPAD_X;
+				WORD a = buttons & XINPUT_GAMEPAD_A;
+				WORD b = buttons & XINPUT_GAMEPAD_B;
+				if (x && a && b)
+					modChecker->testMod();
+			}
+		}
+#endif
+		lastXInputButtons = buttons;
 	}
 
 	return result;

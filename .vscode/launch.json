@@ -5,7 +5,7 @@
       "name": "Launch Automata",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${env:NIER_DIR}\\NieRAutomata.exe.unpacked.exe",
+      "program": "${env:NIER_DIR}\\NieRAutomata.exe",
       "cwd": "${env:NIER_DIR}",
       "symbolSearchPath": "${workspaceFolder}/build/Debug",
       "preLaunchTask": "install_to_nier",

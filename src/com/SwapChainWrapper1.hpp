@@ -35,7 +35,6 @@ class DXGISwapChainWrapper1 : public IDXGISwapChain1 {
 	void rotateVelocity();
 	void resetLocation(D2D1_SIZE_F &screenSize);
 	std::wstring calculateFps(float frameDelta);
-	std::wstring getJoystickMagnitude();
 	std::wstring getLogo();
 
 public:
@@ -56,9 +55,8 @@ public:
 	virtual HRESULT __stdcall SetFullscreenState(BOOL Fullscreen, IDXGIOutput *pTarget) override;
 	virtual HRESULT __stdcall GetFullscreenState(BOOL *pFullscreen, IDXGIOutput **ppTarget) override;
 	virtual HRESULT __stdcall GetDesc(DXGI_SWAP_CHAIN_DESC *pDesc) override;
-	virtual HRESULT __stdcall ResizeBuffers(
-			UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags
-	) override;
+	virtual HRESULT __stdcall
+	ResizeBuffers(UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags) override;
 	virtual HRESULT __stdcall ResizeTarget(const DXGI_MODE_DESC *pNewTargetParameters) override;
 	virtual HRESULT __stdcall GetContainingOutput(IDXGIOutput **ppOutput) override;
 	virtual HRESULT __stdcall GetFrameStatistics(DXGI_FRAME_STATISTICS *pStats) override;
@@ -67,9 +65,8 @@ public:
 	virtual HRESULT __stdcall GetFullscreenDesc(DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc) override;
 	virtual HRESULT __stdcall GetHwnd(HWND *pHwnd) override;
 	virtual HRESULT __stdcall GetCoreWindow(REFIID refiid, void **ppUnk) override;
-	virtual HRESULT __stdcall Present1(
-			UINT SyncInterval, UINT PresentFlags, const DXGI_PRESENT_PARAMETERS *pPresentParameters
-	) override;
+	virtual HRESULT __stdcall
+	Present1(UINT SyncInterval, UINT PresentFlags, const DXGI_PRESENT_PARAMETERS *pPresentParameters) override;
 	virtual BOOL __stdcall IsTemporaryMonoSupported(void) override;
 	virtual HRESULT __stdcall GetRestrictToOutput(IDXGIOutput **ppRestrictToOutput) override;
 	virtual HRESULT __stdcall SetBackgroundColor(const DXGI_RGBA *pColor) override;

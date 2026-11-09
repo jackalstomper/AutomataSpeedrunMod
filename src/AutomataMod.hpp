@@ -30,7 +30,7 @@ class ModChecker {
 	u32 *_playerNameSet;
 	char *_currentPhase;
 	u8 *_unitData;
-	bool *_isLoading;
+	u32 *_isLoading;
 	u32 *_windowMode;
 	bool _modActive;
 	StickState *_stickState;
@@ -62,6 +62,11 @@ public:
 
 	u32 getWindowMode() const;
 	bool getInMenu() const;
+	std::wstring getJoystickMagnitudeString() const;
+
+#ifdef _DEBUG
+	void testMod();
+#endif
 };
 
 } // namespace AutomataMod

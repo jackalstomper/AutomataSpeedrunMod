@@ -90,6 +90,12 @@ cmake ..
 ```
 
 ### Debugging
+Depending on the version of the game you are using you will need to remove steam DRM.
+
+#### Version 1.03
+No DRM is present in this version, no further action is required.
+
+#### Version 1.02
 With automata 1.02 the game will crash if a debugger is attached due to steam DRM.  
 In order to debug while developing the application will need to be unpacked with https://github.com/atom0s/Steamless
 

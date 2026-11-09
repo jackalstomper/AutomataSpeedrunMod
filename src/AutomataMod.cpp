@@ -2,6 +2,8 @@
 #include "infra/Log.hpp"
 #include "infra/Persistence.hpp"
 #include "infra/constants.hpp"
+#include <fmt/format.h>
+#include <fmt/xchar.h>
 
 namespace {
 
@@ -103,7 +105,7 @@ ModChecker::ModChecker(Addresses addrs)
 		, _playerNameSet(getOffset<u32>(_addresses.playerSetName))
 		, _currentPhase(getOffset<char>(_addresses.currentPhase))
 		, _unitData(getOffset<u8>(_addresses.unitData))
-		, _isLoading(getOffset<bool>(_addresses.isLoading))
+		, _isLoading(getOffset<u32>(_addresses.isLoading))
 		, _windowMode(getOffset<u32>(_addresses.windowMode))
 		, _modActive(Persistence::getEnabledFlag())
 		, _stickState(getOffset<StickState>(_addresses.stickState)) {}
@@ -137,12 +139,8 @@ void ModChecker::checkStuff(Microsoft::WRL::ComPtr<DxWrappers::DXGIFactoryWrappe
 		}
 	}
 
-	if (*_isLoading) {
+	if (*_isLoading == 1) {
 		if (!_dvdModeEnabled) {
-			// The flag we use for isLoading is always true during present();
-			// Likely this flag isn't what we think it is.
-			// Because of this we can't read it during present().
-			// If we do the logo will spam all over the screen from constant resetting.
 			factoryWrapper->toggleDvdMode(true);
 			_dvdModeEnabled = true;
 		}
@@ -177,5 +175,56 @@ u32 ModChecker::getWindowMode() const {
 }
 
 bool ModChecker::getInMenu() const { return inPhase("START"); }
+
+std::wstring ModChecker::getJoystickMagnitudeString() const {
+	float magnitude =
+			std::sqrt(_stickState->leftY * _stickState->leftY + _stickState->leftX * _stickState->leftX) * 0.001f;
+	wchar_t mode = L'?';
+	switch (getWindowMode()) {
+	case 0:
+		mode = L'F';
+		break;
+	case 1:
+		mode = L'W';
+		break;
+	case 2:
+		mode = L'B';
+		break;
+	default:
+		mode = L'?';
+		break;
+	}
+	return fmt::format(L"Stick: {:.3f} ({})", magnitude, mode);
+}
+
+#ifdef _DEBUG
+// Deletes all inventory, chips, and unit data, then adds VC3 mod items and the desert flier unit data
+// After running this you can verify the items are present in the pause menu
+void ModChecker::testMod() {
+	for (auto i = _inventoryManager.begin(); i != _inventoryManager.end(); ++i) {
+		_inventoryManager.removeItem(i);
+	}
+
+	// wipe out all chips, including OS chip. but this doesnt trigger an ending
+	Chips::Slot emptyChip;
+	memset(&emptyChip, ~0u, sizeof(Chips::Slot));
+	emptyChip.unknown4 = 0;
+	for (auto i = _chipManager.begin(); i != _chipManager.end(); ++i) {
+		*i = emptyChip;
+	}
+
+	// clear unit data
+	for (int i = 0; i < UNIT_DATA_SIZE; ++i) {
+		_unitData[i] = 0;
+	}
+
+	// Add stuff
+	setVc3Inventory();
+	modifyChipInventory();
+
+	// add flier data
+	_unitData[7] = 2;
+}
+#endif
 
 } // namespace AutomataMod

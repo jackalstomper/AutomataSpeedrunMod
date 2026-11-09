@@ -22,12 +22,16 @@ const std::unordered_map<std::string, NierVerisonInfo> VERSION_HASHES = {
 		{"\x51\x71\xbe\xd0\x9e\x6f\xec\x7b\x21\xbf\x0e\xa4\x79\xdb\xd2\xe1\xb2\x28\x69\x5c\x67\xd1\xf0\xb4\x78\x54\x9a\x9b"
 		 "\xe2\xf5\x72\x6a",
 		 {NierVersion::NIERVER_102, "NieR:Automata (v1.02)"}},
+		{"\x09\x85\x4c\x2d\x45\xd9\xa7\x2e\x66\x35\x7e\x72\xf5\x0c\xee\x37\x9b\xb2\xea\xfe\x35\xb3\xd6\x4e\x5e\x88\xf4\xed"
+		 "\xdc\x86\x13\xfa",
+		 {NierVersion::NIERVER_103, "NieR:Automata (v1.03)"}},
 		{"\x3d\xde\x56\x6c\xea\x3e\x3b\xc1\x5e\x45\x92\x66\x02\xfb\x4f\x24\xd4\x8f\x77\xdf\x8a\x7b\xc5\x50\xa5\xb2\xdc\xae"
 		 "\xcc\xcf\x09\x48",
 		 {NierVersion::NIERVER_WINSTORE, "NieR:Automata (Winstore)"}},
 		{"\xe9\xef\x66\x01\xeb\x40\xeb\x0a\x6d\x3f\x30\xa6\x63\x95\x43\xec\x2f\x81\x71\xc2\x6a\x3d\xe8\xb2\xb1\x30\x39\xee"
 		 "\xbe\x3b\xc8\x1c",
-		 {NierVersion::NIERVER_DEBUG, "NieR:Automata (Debug)"}}};
+		 {NierVersion::NIERVER_DEBUG, "NieR:Automata (Debug)"}}
+};
 
 std::string getNierFileName() {
 	std::vector<char> pathBuffer(MAX_PATH);
@@ -121,7 +125,7 @@ std::optional<NierVerisonInfo> QueryNierBinaryVersion() {
 #ifdef _DEBUG
 	std::string out;
 	for (char c : exeHash) {
-		out += fmt::format("\\x{:x}", (unsigned char)c);
+		out += fmt::format("\\x{:02x}", (unsigned char)c);
 	}
 
 	AutomataMod::log(AutomataMod::LogLevel::LOG_DEBUG, "Nier version hash: {}", out);
